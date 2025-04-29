@@ -73,37 +73,7 @@ def show_ingredient(selected, is_plant=True):
         </div>
     """, unsafe_allow_html=True)
 
-    # Заголовок панели "Подробнее"
-    st.markdown(f"""
-        <div style='
-            display: flex;
-            align-items: center;
-            margin: 12px 0 4px 0;
-        '>
-            <span style='
-                display:inline-block;
-                width:10px;
-                height:10px;
-                border-radius:50%;
-                background-color: #666666;
-                margin-right: 10px;
-            '></span>
-            <span style='color: #999999; font-size: 16px; font-weight: bold;'>Подробнее</span>
-        </div>
-    """, unsafe_allow_html=True)
-
-    with st.expander(label=""):
-        st.markdown(f"""
-            <div style='
-                background-color: rgba(255, 255, 255, 0.03);
-                padding: 18px;
-                border-radius: 10px;
-                border: 1px solid rgba(255,255,255,0.08);
-                box-shadow: inset 0 0 8px rgba(255,255,255,0.05);
-                margin-bottom: 25px;
-            '>
-        """, unsafe_allow_html=True)
-
+    with st.expander("Подробнее"):
         if is_plant:
             st.write(f"**Основной эффект:** {selected['Основной эффект']}")
             st.write(f"**Побочные эффекты:** {selected['Побочные эффекты']}")
@@ -118,8 +88,6 @@ def show_ingredient(selected, is_plant=True):
             st.write(f"**DC сбора:** {selected['DC сбора']}")
             st.write(f"**Способ приготовления:** {selected['Способ приготовления']}")
             st.write(f"**Стоимость продажи:** {selected['Стоимость продажи (зм)']} зм")
-
-        st.markdown("</div>", unsafe_allow_html=True)
 
 
 tab1, tab2 = st.tabs(["🌿 Травы", "🦴 Животные ингредиенты"])
