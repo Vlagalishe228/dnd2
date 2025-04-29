@@ -76,7 +76,7 @@ def show_ingredient(selected, is_plant=True):
                     Описание: {description}
                 </div>
             </div>
-            <div style='color: {text_color}; font-size: 16px; font-weight: bold; text-align: right;'>
+            <div style='color: {text_color}; font-size: 22px; font-weight: bold; text-align: right;'>
                 DC: {dc_value}
             </div>
         </div>
@@ -116,9 +116,10 @@ with tab1:
         if "plant_history" not in st.session_state:
             st.session_state["plant_history"] = []
             st.session_state["plant_index"] = -1
-        col_roll, col_back, col_forward = st.columns([1.8, 0.6, 0.6])
+        col_roll, col_back, col_forward = st.columns([2, 0.5, 0.5])
         with col_roll:
-            if st.button("🎲 Заролить ингредиенты (Травы)", key="roll_plant"):
+            roll_clicked = st.button("🎲 Заролить ингредиенты (Травы)", key="roll_plant")
+            if roll_clicked:
                 if filtered_df.empty:
                     st.warning("Нет ингредиентов, соответствующих выбранным фильтрам.")
                 else:
@@ -126,13 +127,13 @@ with tab1:
                     st.session_state["plant_history"].append(roll)
                     st.session_state["plant_index"] = len(st.session_state["plant_history"]) - 1
         with col_back:
-            if st.button("\u25C0 Назад", key="plant_prev"):
+            if st.button("◀ Назад", key="plant_prev"):
                 if st.session_state["plant_index"] > 0:
                     st.session_state["plant_index"] -= 1
                 else:
                     st.info("Это самый первый результат.")
         with col_forward:
-            if st.button("Вперёд \u25B6", key="plant_next"):
+            if st.button("Вперёд ▶", key="plant_next"):
                 if st.session_state["plant_index"] < len(st.session_state["plant_history"]) - 1:
                     st.session_state["plant_index"] += 1
                 else:
@@ -152,8 +153,9 @@ with tab2:
         if "animal_history" not in st.session_state:
             st.session_state["animal_history"] = []
             st.session_state["animal_index"] = -1
-        col_roll, col_back, col_forward = st.columns([1.8, 0.6, 0.6])
+        col_roll, col_back, col_forward = st.columns([2, 0.5, 0.5])
         with col_roll:
+            roll_clicked = st.button("🎲 Заролить ингредиенты (Травы)", key="roll_plant")
             if st.button("🎲 Заролить ингредиенты (Животные)", key="roll_animal"):
                 if filtered_df.empty:
                     st.warning("Нет ингредиентов, соответствующих выбранным фильтрам.")
@@ -162,13 +164,13 @@ with tab2:
                     st.session_state["animal_history"].append(roll)
                     st.session_state["animal_index"] = len(st.session_state["animal_history"]) - 1
         with col_back:
-            if st.button("\u25C0 Назад", key="animal_prev"):
+            if st.button("◀ Назад", key="animal_prev"):
                 if st.session_state["animal_index"] > 0:
                     st.session_state["animal_index"] -= 1
                 else:
                     st.info("Это самый первый результат.")
         with col_forward:
-            if st.button("Вперёд \u25B6", key="animal_next"):
+            if st.button("Вперёд ▶", key="animal_next"):
                 if st.session_state["animal_index"] < len(st.session_state["animal_history"]) - 1:
                     st.session_state["animal_index"] += 1
                 else:
