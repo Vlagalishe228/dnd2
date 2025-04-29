@@ -1,4 +1,3 @@
-
 import streamlit as st
 import pandas as pd
 import random
@@ -49,24 +48,38 @@ for tab, df, label in [(tab1, df_plants, "Травы"), (tab2, df_animals, "Жи
         # Фильтры
         col1, col2 = st.columns(2)
         with col1:
-            selected_rarity = st.multiselect("📊 Фильтр по редкости", df["Редкость"].unique(), default=df["Редкость"].unique())
+            selected_rarity = st.multiselect(
+                "📊 Фильтр по редкости",
+                df["Редкость"].unique(),
+                default=df["Редкость"].unique(),
+                key=f"rarity_{label}"
+            )
         with col2:
-            selected_env = st.multiselect("🌍 Среда обитания", sorted(set(", ".join(df["Среда обитания"].dropna()).split(", "))), default=None)
+            all_envs = sorted(set(", ".join(df["Среда обитания"].dropna()).split(", ")))
+            selected_env = st.multiselect(
+                "🌍 Среда обитания",
+                all_envs,
+                default=None,
+                key=f"env_{label}"
+            )
 
         filtered_df = df[df["Редкость"].isin(selected_rarity)]
-
         if selected_env:
             filtered_df = filtered_df[filtered_df["Среда обитания"].str.contains("|".join(selected_env), na=False)]
 
         # Сортировка
-        sort_col = st.selectbox("🔃 Сортировать по", ["Нет", "Редкость", "Среда обитания"])
+        sort_col = st.selectbox(
+            "🔃 Сортировать по",
+            ["Нет", "Редкость", "Среда обитания"],
+            key=f"sort_{label}"
+        )
         if sort_col != "Нет":
             filtered_df = filtered_df.sort_values(by=sort_col)
 
         # Кол-во ингредиентов
-        num = st.slider("🔢 Сколько ингредиентов выбрать?", 1, 10, 3)
+        num = st.slider("🔢 Сколько ингредиентов выбрать?", 1, 10, 3, key=f"count_{label}")
 
-        if st.button(f"Выбрать ингредиенты ({label})", key=label):
+        if st.button(f"Выбрать ингредиенты ({label})", key=f"button_{label}"):
             for i in range(num):
                 selected = weighted_sample(filtered_df, seed + i)
                 if selected is not None:
@@ -88,3 +101,4 @@ for tab, df, label in [(tab1, df_plants, "Травы"), (tab2, df_animals, "Жи
                         st.write(f"**Форма применения:** {selected['Форма применения']}")
                 else:
                     st.warning("Ничего не найдено по заданным фильтрам.")
+
