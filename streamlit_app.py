@@ -44,7 +44,7 @@ for tab, df, label in [(tab1, df_plants, "Травы"), (tab2, df_animals, "Жи
         st.header(f"🎲 Генератор ингредиентов — {label}")
 
         # Seed
-        seed = st.number_input("🔁 Seed (для воспроизводимости)", value=0, step=1)
+        seed = st.number_input("🔁 Seed (для воспроизводимости)", value=0, step=1, key=f"seed_{label}")
 
         # Фильтры
         col1, col2 = st.columns(2)
