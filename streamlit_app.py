@@ -8,7 +8,7 @@ st.set_page_config(page_title="Генератор ингредиентов DnD",
 # === Загрузка данных ===
 @st.cache_data
 def load_plant_data():
-    return pd.read_excel("ingredients_cleaned.xlsx")
+    return pd.read_excel("ingredients.xlsx")
 
 @st.cache_data
 def load_animal_data():
