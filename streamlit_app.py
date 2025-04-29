@@ -1,3 +1,5 @@
+# Обновлённый код с сохранением и отображением предыдущего результата отдельно
+updated_code_with_prev = """
 import streamlit as st
 import pandas as pd
 import random
@@ -76,6 +78,9 @@ with tab1:
                 st.warning("Нет ингредиентов, соответствующих выбранным фильтрам.")
             else:
                 rolled = roll_ingredients(filtered_df, num)
+                # Сохраняем предыдущий результат отдельно
+                if "last_plant_result" in st.session_state:
+                    st.session_state["prev_plant_result"] = st.session_state["last_plant_result"]
                 st.session_state["last_plant_result"] = rolled
 
                 for selected in rolled:
@@ -98,10 +103,10 @@ with tab1:
 
     with col2:
         if st.button("📄 Показать предыдущий результат (Травы)", key="prev_plant"):
-            if "last_plant_result" not in st.session_state:
-                st.info("Ещё ничего не заролено.")
+            if "prev_plant_result" not in st.session_state:
+                st.info("Предыдущий результат не найден.")
             else:
-                for selected in st.session_state["last_plant_result"]:
+                for selected in st.session_state["prev_plant_result"]:
                     icon = {
                         "Обычный": "⚪",
                         "Необычный": "🟢",
@@ -140,6 +145,8 @@ with tab2:
                 st.warning("Нет ингредиентов, соответствующих выбранным фильтрам.")
             else:
                 rolled = roll_ingredients(filtered_df, num)
+                if "last_animal_result" in st.session_state:
+                    st.session_state["prev_animal_result"] = st.session_state["last_animal_result"]
                 st.session_state["last_animal_result"] = rolled
 
                 for selected in rolled:
@@ -160,10 +167,10 @@ with tab2:
 
     with col2:
         if st.button("📄 Показать предыдущий результат (Животные)", key="prev_animal"):
-            if "last_animal_result" not in st.session_state:
-                st.info("Ещё ничего не заролено.")
+            if "prev_animal_result" not in st.session_state:
+                st.info("Предыдущий результат не найден.")
             else:
-                for selected in st.session_state["last_animal_result"]:
+                for selected in st.session_state["prev_animal_result"]:
                     icon = {
                         "Обычный": "⚪",
                         "Необычный": "🟢",
@@ -178,3 +185,11 @@ with tab2:
                         st.write(f"**DC сбора:** {selected['DC сбора']}")
                         st.write(f"**Способ приготовления:** {selected['Способ приготовления']}")
                         st.write(f"**Стоимость продажи:** {selected['Стоимость продажи (зм)']} зм")
+"""
+
+# Сохраняем финальный файл
+final_file_path = "/mnt/data/streamlit_app.py"
+with open(final_file_path, "w", encoding="utf-8") as f:
+    f.write(updated_code_with_prev)
+
+final_file_path
