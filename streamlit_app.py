@@ -55,7 +55,6 @@ def show_ingredient(selected, is_plant=True):
 
     circle_html = f"<span style='display:inline-block; width:14px; height:14px; border-radius:50%; background:{text_color}; margin-right:8px;'></span>"
 
-    # Название и описание — красивая панель
     st.markdown(f"""
         <div style='
             background: linear-gradient(135deg, {bg_color}, #1c1c1c);
@@ -74,75 +73,74 @@ def show_ingredient(selected, is_plant=True):
         </div>
     """, unsafe_allow_html=True)
 
-    # Кастомная "Подробнее" панель
-    with st.container():
-        details_key = f"details_{name}_{random.randint(0, 100000)}"
-        if st.toggle("📖 Подробнее", key=details_key):
-            st.markdown(f"""
-                <div style='
-                    background-color: rgba(255, 255, 255, 0.03);
-                    padding: 18px;
-                    border-radius: 10px;
-                    border: 1px solid rgba(255,255,255,0.08);
-                    box-shadow: inset 0 0 8px rgba(255,255,255,0.05);
-                    margin-bottom: 25px;
-                '>
-            """, unsafe_allow_html=True)
+    with st.expander(label="", expanded=False):
+        st.markdown(f"""
+            <div style='
+                display: flex;
+                align-items: center;
+                margin-bottom: 12px;
+                margin-top: -10px;
+            '>
+                <span style='
+                    display:inline-block;
+                    width:10px;
+                    height:10px;
+                    border-radius:50%;
+                    background-color: #666666;
+                    margin-right: 10px;
+                '></span>
+                <span style='color: #999999; font-size: 16px; font-weight: bold;'>Подробнее</span>
+            </div>
+        """, unsafe_allow_html=True)
 
-            if is_plant:
-                st.write(f"**Основной эффект:** {selected['Основной эффект']}")
-                st.write(f"**Побочные эффекты:** {selected['Побочные эффекты']}")
-                st.write(f"**DC сбора:** {selected['DC сбора']}")
-                st.write(f"**Стоимость:** {selected['Стоимость']} малых печатей")
-                st.write(f"**Среда обитания:** {selected['Среда обитания']}")
-                st.write(f"**Тип:** {selected['Тип']}")
-                st.write(f"**Форма применения:** {selected['Форма применения']}")
-            else:
-                st.write(f"**Игровые механики:** {selected['Игровые механики']}")
-                st.write(f"**Побочные эффекты:** {selected['Побочные эффекты']}")
-                st.write(f"**DC сбора:** {selected['DC сбора']}")
-                st.write(f"**Способ приготовления:** {selected['Способ приготовления']}")
-                st.write(f"**Стоимость продажи:** {selected['Стоимость продажи (зм)']} зм")
+        st.markdown(f"""
+            <div style='
+                background-color: rgba(255, 255, 255, 0.03);
+                padding: 18px;
+                border-radius: 10px;
+                border: 1px solid rgba(255,255,255,0.08);
+                box-shadow: inset 0 0 8px rgba(255,255,255,0.05);
+                margin-bottom: 25px;
+            '>
+        """, unsafe_allow_html=True)
 
-            st.markdown("</div>", unsafe_allow_html=True)
+        if is_plant:
+            st.write(f"**Основной эффект:** {selected['Основной эффект']}")
+            st.write(f"**Побочные эффекты:** {selected['Побочные эффекты']}")
+            st.write(f"**DC сбора:** {selected['DC сбора']}")
+            st.write(f"**Стоимость:** {selected['Стоимость']} малых печатей")
+            st.write(f"**Среда обитания:** {selected['Среда обитания']}")
+            st.write(f"**Тип:** {selected['Тип']}")
+            st.write(f"**Форма применения:** {selected['Форма применения']}")
+        else:
+            st.write(f"**Игровые механики:** {selected['Игровые механики']}")
+            st.write(f"**Побочные эффекты:** {selected['Побочные эффекты']}")
+            st.write(f"**DC сбора:** {selected['DC сбора']}")
+            st.write(f"**Способ приготовления:** {selected['Способ приготовления']}")
+            st.write(f"**Стоимость продажи:** {selected['Стоимость продажи (зм)']} зм")
 
+        st.markdown("</div>", unsafe_allow_html=True)
 
-# === Вкладки ===
+# Tabs and content
 tab1, tab2 = st.tabs(["🌿 Травы", "🦴 Животные ингредиенты"])
 
-# === ТРАВЫ ===
 with tab1:
     col_left, col_center, col_right = st.columns([1, 2.5, 1])
     with col_center:
         st.header("🎲 Генератор ингредиентов — Травы")
-
         col1, col2 = st.columns(2)
         with col1:
-            selected_rarity = st.multiselect(
-                "📊 Фильтр по редкости",
-                df_plants["Редкость"].unique(),
-                default=df_plants["Редкость"].unique(),
-                key="rarity_plant"
-            )
+            selected_rarity = st.multiselect("📊 Фильтр по редкости", df_plants["Редкость"].unique(), default=df_plants["Редкость"].unique(), key="rarity_plant")
         with col2:
             all_envs = sorted(set(", ".join(df_plants["Среда обитания"].dropna()).split(", ")))
-            selected_env = st.multiselect(
-                "🌍 Среда обитания",
-                all_envs,
-                default=None,
-                key="env_plant"
-            )
-
+            selected_env = st.multiselect("🌍 Среда обитания", all_envs, default=None, key="env_plant")
         filtered_df = df_plants[df_plants["Редкость"].isin(selected_rarity)]
         if selected_env:
             filtered_df = filtered_df[filtered_df["Среда обитания"].str.contains("|".join(selected_env), na=False)]
-
         num = st.slider("🔢 Сколько ингредиентов заролить?", 1, 10, 3, key="count_plant")
-
         if "plant_history" not in st.session_state:
             st.session_state["plant_history"] = []
             st.session_state["plant_index"] = -1
-
         col_roll, col_back, col_forward = st.columns([2, 1, 1])
         with col_roll:
             if st.button("🎲 Заролить ингредиенты (Травы)", key="roll_plant"):
@@ -152,46 +150,33 @@ with tab1:
                     roll = roll_ingredients(filtered_df, num)
                     st.session_state["plant_history"].append(roll)
                     st.session_state["plant_index"] = len(st.session_state["plant_history"]) - 1
-
         with col_back:
             if st.button("⬅️ Назад", key="plant_prev"):
                 if st.session_state["plant_index"] > 0:
                     st.session_state["plant_index"] -= 1
                 else:
                     st.info("Это самый первый результат.")
-
         with col_forward:
             if st.button("➡️ Вперёд", key="plant_next"):
                 if st.session_state["plant_index"] < len(st.session_state["plant_history"]) - 1:
                     st.session_state["plant_index"] += 1
                 else:
                     st.info("Это последний результат.")
-
         st.markdown("---")
         if st.session_state["plant_index"] >= 0:
             for item in st.session_state["plant_history"][st.session_state["plant_index"]]:
                 show_ingredient(item, is_plant=True)
 
-# === ЖИВОТНЫЕ ИНГРЕДИЕНТЫ ===
 with tab2:
     col_left, col_center, col_right = st.columns([1, 2.5, 1])
     with col_center:
         st.header("🎲 Генератор ингредиентов — Животные")
-
-        selected_rarity = st.multiselect(
-            "📊 Фильтр по редкости",
-            df_animals["Редкость"].unique(),
-            default=df_animals["Редкость"].unique(),
-            key="rarity_animal"
-        )
-
+        selected_rarity = st.multiselect("📊 Фильтр по редкости", df_animals["Редкость"].unique(), default=df_animals["Редкость"].unique(), key="rarity_animal")
         filtered_df = df_animals[df_animals["Редкость"].isin(selected_rarity)]
         num = st.slider("🔢 Сколько ингредиентов заролить?", 1, 10, 3, key="count_animal")
-
         if "animal_history" not in st.session_state:
             st.session_state["animal_history"] = []
             st.session_state["animal_index"] = -1
-
         col_roll, col_back, col_forward = st.columns([2, 1, 1])
         with col_roll:
             if st.button("🎲 Заролить ингредиенты (Животные)", key="roll_animal"):
@@ -201,21 +186,18 @@ with tab2:
                     roll = roll_ingredients(filtered_df, num)
                     st.session_state["animal_history"].append(roll)
                     st.session_state["animal_index"] = len(st.session_state["animal_history"]) - 1
-
         with col_back:
             if st.button("⬅️ Назад", key="animal_prev"):
                 if st.session_state["animal_index"] > 0:
                     st.session_state["animal_index"] -= 1
                 else:
                     st.info("Это самый первый результат.")
-
         with col_forward:
             if st.button("➡️ Вперёд", key="animal_next"):
                 if st.session_state["animal_index"] < len(st.session_state["animal_history"]) - 1:
                     st.session_state["animal_index"] += 1
                 else:
                     st.info("Это последний результат.")
-
         st.markdown("---")
         if st.session_state["animal_index"] >= 0:
             for item in st.session_state["animal_history"][st.session_state["animal_index"]]:
