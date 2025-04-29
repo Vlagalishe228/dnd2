@@ -4,7 +4,6 @@ import random
 
 st.set_page_config(page_title="Генератор ингредиентов DnD", layout="wide")
 
-# === Загрузка данных ===
 @st.cache_data
 def load_plant_data():
     return pd.read_excel("ingredients.xlsx")
@@ -31,6 +30,14 @@ def weighted_sample(df):
     if not weighted_list:
         return None
     return df.loc[random.choice(weighted_list)]
+
+def roll_ingredients(df, num):
+    results = []
+    for _ in range(num):
+        selected = weighted_sample(df)
+        if selected is not None:
+            results.append(selected)
+    return results
 
 # === Вкладки ===
 tab1, tab2 = st.tabs(["🌿 Травы", "🦴 Животные ингредиенты"])
@@ -60,19 +67,22 @@ with tab1:
     if selected_env:
         filtered_df = filtered_df[filtered_df["Среда обитания"].str.contains("|".join(selected_env), na=False)]
 
-    sort_col = st.selectbox("🔃 Сортировать по", ["Нет", "Редкость", "Среда обитания"], key="sort_plant")
-    if sort_col != "Нет":
-        filtered_df = filtered_df.sort_values(by=sort_col)
-
     num = st.slider("🔢 Сколько ингредиентов заролить?", 1, 10, 3, key="count_plant")
 
-    if st.button("🎲 Заролить ингредиенты (Травы)", key="roll_plant"):
-        if filtered_df.empty:
-            st.warning("Нет ингредиентов, соответствующих выбранным фильтрам.")
-        else:
-            for _ in range(num):
-                selected = weighted_sample(filtered_df)
-                if selected is not None:
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("🎲 Заролить ингредиенты (Травы)", key="roll_plant"):
+            if filtered_df.empty:
+                st.warning("Нет ингредиентов, соответствующих выбранным фильтрам.")
+            else:
+                st.session_state["last_plant_result"] = roll_ingredients(filtered_df, num)
+
+    with col2:
+        if st.button("📄 Показать предыдущий результат (Травы)", key="prev_plant"):
+            if "last_plant_result" not in st.session_state:
+                st.info("Ещё ничего не заролено.")
+            else:
+                for selected in st.session_state["last_plant_result"]:
                     icon = {
                         "Обычный": "⚪",
                         "Необычный": "🟢",
@@ -89,8 +99,6 @@ with tab1:
                         st.write(f"**Среда обитания:** {selected['Среда обитания']}")
                         st.write(f"**Тип:** {selected['Тип']}")
                         st.write(f"**Форма применения:** {selected['Форма применения']}")
-                else:
-                    st.warning("Ошибка генерации. Попробуйте ещё раз.")
 
 # === ЖИВОТНЫЕ ИНГРЕДИЕНТЫ ===
 with tab2:
@@ -104,16 +112,22 @@ with tab2:
     )
 
     filtered_df = df_animals[df_animals["Редкость"].isin(selected_rarity)]
-
     num = st.slider("🔢 Сколько ингредиентов заролить?", 1, 10, 3, key="count_animal")
 
-    if st.button("🎲 Заролить ингредиенты (Животные)", key="roll_animal"):
-        if filtered_df.empty:
-            st.warning("Нет ингредиентов, соответствующих выбранным фильтрам.")
-        else:
-            for _ in range(num):
-                selected = weighted_sample(filtered_df)
-                if selected is not None:
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("🎲 Заролить ингредиенты (Животные)", key="roll_animal"):
+            if filtered_df.empty:
+                st.warning("Нет ингредиентов, соответствующих выбранным фильтрам.")
+            else:
+                st.session_state["last_animal_result"] = roll_ingredients(filtered_df, num)
+
+    with col2:
+        if st.button("📄 Показать предыдущий результат (Животные)", key="prev_animal"):
+            if "last_animal_result" not in st.session_state:
+                st.info("Ещё ничего не заролено.")
+            else:
+                for selected in st.session_state["last_animal_result"]:
                     icon = {
                         "Обычный": "⚪",
                         "Необычный": "🟢",
@@ -128,5 +142,3 @@ with tab2:
                         st.write(f"**DC сбора:** {selected['DC сбора']}")
                         st.write(f"**Способ приготовления:** {selected['Способ приготовления']}")
                         st.write(f"**Стоимость продажи:** {selected['Стоимость продажи (зм)']} зм")
-                else:
-                    st.warning("Ошибка генерации. Попробуйте ещё раз.")
