@@ -46,9 +46,8 @@ def show_ingredient(selected, is_plant=True):
     rarity = selected["Редкость"]
     description = selected["Описание"] if is_plant else selected["Основной эффект"]
 
-    header = f"{icon} {name} ({rarity})"
+    header = f"{icon} {name} ({rarity})\\nОписание: {description}"
     with st.expander(header):
-        st.markdown(f"**Описание:** {description}")
         st.markdown("---")
         if is_plant:
             st.write(f"**Основной эффект:** {selected['Основной эффект']}")
