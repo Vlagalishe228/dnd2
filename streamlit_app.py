@@ -73,26 +73,26 @@ def show_ingredient(selected, is_plant=True):
         </div>
     """, unsafe_allow_html=True)
 
-    with st.expander(label="", expanded=False):
-        st.markdown(f"""
-            <div style='
-                display: flex;
-                align-items: center;
-                margin-bottom: 12px;
-                margin-top: -10px;
-            '>
-                <span style='
-                    display:inline-block;
-                    width:10px;
-                    height:10px;
-                    border-radius:50%;
-                    background-color: #666666;
-                    margin-right: 10px;
-                '></span>
-                <span style='color: #999999; font-size: 16px; font-weight: bold;'>Подробнее</span>
-            </div>
-        """, unsafe_allow_html=True)
+    # Заголовок панели "Подробнее"
+    st.markdown(f"""
+        <div style='
+            display: flex;
+            align-items: center;
+            margin: 12px 0 4px 0;
+        '>
+            <span style='
+                display:inline-block;
+                width:10px;
+                height:10px;
+                border-radius:50%;
+                background-color: #666666;
+                margin-right: 10px;
+            '></span>
+            <span style='color: #999999; font-size: 16px; font-weight: bold;'>Подробнее</span>
+        </div>
+    """, unsafe_allow_html=True)
 
+    with st.expander(label=""):
         st.markdown(f"""
             <div style='
                 background-color: rgba(255, 255, 255, 0.03);
@@ -121,7 +121,7 @@ def show_ingredient(selected, is_plant=True):
 
         st.markdown("</div>", unsafe_allow_html=True)
 
-# Tabs and content
+
 tab1, tab2 = st.tabs(["🌿 Травы", "🦴 Животные ингредиенты"])
 
 with tab1:
