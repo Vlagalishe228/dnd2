@@ -32,12 +32,7 @@ def weighted_sample(df):
     return df.loc[random.choice(weighted_list)]
 
 def roll_ingredients(df, num):
-    results = []
-    for _ in range(num):
-        selected = weighted_sample(df)
-        if selected is not None:
-            results.append(selected)
-    return results
+    return [weighted_sample(df) for _ in range(num)]
 
 def show_ingredient(selected, is_plant=True):
     icon = {
@@ -47,7 +42,7 @@ def show_ingredient(selected, is_plant=True):
         "Легендарный": "🟣"
     }.get(selected["Редкость"], "❓")
 
-    with st.expander(f"{icon} {selected['Название']} ({selected['Редкость']})"):
+    with st.expander(f"{icon} {selected['Название']} ({selected['Редкость']})", expanded=True):
         if is_plant:
             st.write(f"**Описание:** {selected['Описание']}")
             st.write(f"**Основной эффект:** {selected['Основной эффект']}")
@@ -95,28 +90,31 @@ with tab1:
 
     num = st.slider("🔢 Сколько ингредиентов заролить?", 1, 10, 3, key="count_plant")
 
-    col1, col2 = st.columns(2)
+    if "plant_history" not in st.session_state:
+        st.session_state["plant_history"] = []
+        st.session_state["plant_index"] = -1
 
-    with col1:
+    col_btn1, col_btn2 = st.columns(2)
+    with col_btn1:
         if st.button("🎲 Заролить ингредиенты (Травы)", key="roll_plant"):
             if filtered_df.empty:
                 st.warning("Нет ингредиентов, соответствующих выбранным фильтрам.")
             else:
                 new_roll = roll_ingredients(filtered_df, num)
-                if "last_plant_result" in st.session_state:
-                    st.session_state["prev_plant_result"] = st.session_state["last_plant_result"]
-                st.session_state["last_plant_result"] = new_roll
+                st.session_state["plant_history"].append(new_roll)
+                st.session_state["plant_index"] = len(st.session_state["plant_history"]) - 1
 
-                for item in new_roll:
-                    show_ingredient(item, is_plant=True)
-
-    with col2:
+    with col_btn2:
         if st.button("📄 Показать предыдущий результат (Травы)", key="prev_plant"):
-            if "prev_plant_result" in st.session_state:
-                for item in st.session_state["prev_plant_result"]:
-                    show_ingredient(item, is_plant=True)
+            if st.session_state["plant_index"] > 0:
+                st.session_state["plant_index"] -= 1
             else:
-                st.info("Предыдущий результат ещё не сохранён.")
+                st.info("Вы уже на первом ролле.")
+
+    st.markdown("---")
+    if st.session_state["plant_index"] >= 0:
+        for item in st.session_state["plant_history"][st.session_state["plant_index"]]:
+            show_ingredient(item, is_plant=True)
 
 # === ЖИВОТНЫЕ ИНГРЕДИЕНТЫ ===
 with tab2:
@@ -132,25 +130,28 @@ with tab2:
     filtered_df = df_animals[df_animals["Редкость"].isin(selected_rarity)]
     num = st.slider("🔢 Сколько ингредиентов заролить?", 1, 10, 3, key="count_animal")
 
-    col1, col2 = st.columns(2)
+    if "animal_history" not in st.session_state:
+        st.session_state["animal_history"] = []
+        st.session_state["animal_index"] = -1
 
-    with col1:
+    col_btn1, col_btn2 = st.columns(2)
+    with col_btn1:
         if st.button("🎲 Заролить ингредиенты (Животные)", key="roll_animal"):
             if filtered_df.empty:
                 st.warning("Нет ингредиентов, соответствующих выбранным фильтрам.")
             else:
                 new_roll = roll_ingredients(filtered_df, num)
-                if "last_animal_result" in st.session_state:
-                    st.session_state["prev_animal_result"] = st.session_state["last_animal_result"]
-                st.session_state["last_animal_result"] = new_roll
+                st.session_state["animal_history"].append(new_roll)
+                st.session_state["animal_index"] = len(st.session_state["animal_history"]) - 1
 
-                for item in new_roll:
-                    show_ingredient(item, is_plant=False)
-
-    with col2:
+    with col_btn2:
         if st.button("📄 Показать предыдущий результат (Животные)", key="prev_animal"):
-            if "prev_animal_result" in st.session_state:
-                for item in st.session_state["prev_animal_result"]:
-                    show_ingredient(item, is_plant=False)
+            if st.session_state["animal_index"] > 0:
+                st.session_state["animal_index"] -= 1
             else:
-                st.info("Предыдущий результат ещё не сохранён.")
+                st.info("Вы уже на первом ролле.")
+
+    st.markdown("---")
+    if st.session_state["animal_index"] >= 0:
+        for item in st.session_state["animal_history"][st.session_state["animal_index"]]:
+            show_ingredient(item, is_plant=False)
