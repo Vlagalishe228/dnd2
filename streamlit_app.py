@@ -45,14 +45,11 @@ def show_ingredient(selected, is_plant=True):
     name = selected["Название"]
     rarity = selected["Редкость"]
     description = selected["Описание"] if is_plant else selected["Основной эффект"]
-    summary = selected.get("Тип", "") if is_plant else selected.get("Способ приготовления", "")
 
-    st.markdown(f"### {icon} {name} ({rarity})")
-    st.markdown(f"**{description}**")
-    if summary:
-        st.caption(summary)
-
-    with st.expander("📖 Подробнее"):
+    header = f"{icon} {name} ({rarity})"
+    with st.expander(header):
+        st.markdown(f"**{description}**")
+        st.markdown("---")
         if is_plant:
             st.write(f"**Основной эффект:** {selected['Основной эффект']}")
             st.write(f"**Побочные эффекты:** {selected['Побочные эффекты']}")
