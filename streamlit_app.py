@@ -155,7 +155,6 @@ with tab2:
             st.session_state["animal_index"] = -1
         col_roll, col_back, col_forward = st.columns([2, 0.5, 0.5])
         with col_roll:
-            roll_clicked = st.button("🎲 Заролить ингредиенты (Травы)", key="roll_plant_main")
             if st.button("🎲 Заролить ингредиенты (Животные)", key="roll_animal"):
                 if filtered_df.empty:
                     st.warning("Нет ингредиентов, соответствующих выбранным фильтрам.")
