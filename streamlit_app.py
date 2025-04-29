@@ -35,47 +35,56 @@ def roll_ingredients(df, num):
     return [weighted_sample(df) for _ in range(num)]
 
 def show_ingredient(selected, is_plant=True):
-    icon = {
-        "Обычный": "⚪",
-        "Необычный": "🟢",
-        "Редкий": "🔵",
-        "Легендарный": "🟣"
-    }.get(selected["Редкость"], "❓")
+    rarity = selected["Редкость"]
+    name = selected["Название"]
+    description = selected["Описание"] if is_plant else selected["Основной эффект"]
 
+    # Цвета по редкости
     text_color = {
         "Обычный": "#e4e5e3",
         "Необычный": "#b3e9b8",
         "Редкий": "#f0be7f",
         "Легендарный": "#f7ed2d"
-    }.get(selected["Редкость"], "#ffffff")
+    }.get(rarity, "#ffffff")
 
     bg_color = {
         "Обычный": "#2f2f2f",
         "Необычный": "#1f3f2f",
         "Редкий": "#3f2f1f",
         "Легендарный": "#3f3f0f"
-    }.get(selected["Редкость"], "#2f2f2f")
+    }.get(rarity, "#2f2f2f")
 
-    name = selected["Название"]
-    rarity = selected["Редкость"]
-    description = selected["Описание"] if is_plant else selected["Основной эффект"]
+    circle_html = f"<span style='display:inline-block; width:14px; height:14px; border-radius:50%; background:{text_color}; margin-right:8px;'></span>"
 
+    # Стилизованная панель с названием и описанием
     st.markdown(f"""
         <div style='
             background: linear-gradient(135deg, {bg_color}, #1c1c1c);
             padding: 18px 22px;
             border-left: 6px solid {text_color};
             border-radius: 12px;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
             box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.5);
         '>
             <div style='color: {text_color}; font-size: 22px; font-weight: bold; margin-bottom: 6px'>
-                {icon} {name} ({rarity})
+                {circle_html}{name} ({rarity})
             </div>
             <div style='color: #eeeeee; font-size: 16px; font-style: italic'>
                 Описание: {description}
             </div>
         </div>
+    """, unsafe_allow_html=True)
+
+    # Стилизация панели "Подробнее"
+    st.markdown(f"""
+    <div style='
+        background-color: rgba(255, 255, 255, 0.03);
+        padding: 16px;
+        border-radius: 10px;
+        border: 1px solid rgba(255,255,255,0.08);
+        box-shadow: inset 0 0 8px rgba(255,255,255,0.05);
+        margin-bottom: 25px;
+    '>
     """, unsafe_allow_html=True)
 
     with st.expander("📖 Подробнее"):
@@ -93,6 +102,9 @@ def show_ingredient(selected, is_plant=True):
             st.write(f"**DC сбора:** {selected['DC сбора']}")
             st.write(f"**Способ приготовления:** {selected['Способ приготовления']}")
             st.write(f"**Стоимость продажи:** {selected['Стоимость продажи (зм)']} зм")
+
+    st.markdown("</div>", unsafe_allow_html=True)
+
 
 # === Вкладки ===
 tab1, tab2 = st.tabs(["🌿 Травы", "🦴 Животные ингредиенты"])
