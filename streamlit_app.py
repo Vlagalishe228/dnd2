@@ -39,7 +39,6 @@ def show_ingredient(selected, is_plant=True):
     name = selected["Название"]
     description = selected["Описание"] if is_plant else selected["Основной эффект"]
 
-    # Цвета по редкости
     text_color = {
         "Обычный": "#e4e5e3",
         "Необычный": "#b3e9b8",
@@ -56,7 +55,7 @@ def show_ingredient(selected, is_plant=True):
 
     circle_html = f"<span style='display:inline-block; width:14px; height:14px; border-radius:50%; background:{text_color}; margin-right:8px;'></span>"
 
-    # Стилизованная панель с названием и описанием
+    # Название и описание — красивая панель
     st.markdown(f"""
         <div style='
             background: linear-gradient(135deg, {bg_color}, #1c1c1c);
@@ -75,35 +74,37 @@ def show_ingredient(selected, is_plant=True):
         </div>
     """, unsafe_allow_html=True)
 
-    # Стилизация панели "Подробнее"
-    st.markdown(f"""
-    <div style='
-        background-color: rgba(255, 255, 255, 0.03);
-        padding: 16px;
-        border-radius: 10px;
-        border: 1px solid rgba(255,255,255,0.08);
-        box-shadow: inset 0 0 8px rgba(255,255,255,0.05);
-        margin-bottom: 25px;
-    '>
-    """, unsafe_allow_html=True)
+    # Кастомная "Подробнее" панель
+    with st.container():
+        details_key = f"details_{name}_{random.randint(0, 100000)}"
+        if st.toggle("📖 Подробнее", key=details_key):
+            st.markdown(f"""
+                <div style='
+                    background-color: rgba(255, 255, 255, 0.03);
+                    padding: 18px;
+                    border-radius: 10px;
+                    border: 1px solid rgba(255,255,255,0.08);
+                    box-shadow: inset 0 0 8px rgba(255,255,255,0.05);
+                    margin-bottom: 25px;
+                '>
+            """, unsafe_allow_html=True)
 
-    with st.expander("📖 Подробнее"):
-        if is_plant:
-            st.write(f"**Основной эффект:** {selected['Основной эффект']}")
-            st.write(f"**Побочные эффекты:** {selected['Побочные эффекты']}")
-            st.write(f"**DC сбора:** {selected['DC сбора']}")
-            st.write(f"**Стоимость:** {selected['Стоимость']} малых печатей")
-            st.write(f"**Среда обитания:** {selected['Среда обитания']}")
-            st.write(f"**Тип:** {selected['Тип']}")
-            st.write(f"**Форма применения:** {selected['Форма применения']}")
-        else:
-            st.write(f"**Игровые механики:** {selected['Игровые механики']}")
-            st.write(f"**Побочные эффекты:** {selected['Побочные эффекты']}")
-            st.write(f"**DC сбора:** {selected['DC сбора']}")
-            st.write(f"**Способ приготовления:** {selected['Способ приготовления']}")
-            st.write(f"**Стоимость продажи:** {selected['Стоимость продажи (зм)']} зм")
+            if is_plant:
+                st.write(f"**Основной эффект:** {selected['Основной эффект']}")
+                st.write(f"**Побочные эффекты:** {selected['Побочные эффекты']}")
+                st.write(f"**DC сбора:** {selected['DC сбора']}")
+                st.write(f"**Стоимость:** {selected['Стоимость']} малых печатей")
+                st.write(f"**Среда обитания:** {selected['Среда обитания']}")
+                st.write(f"**Тип:** {selected['Тип']}")
+                st.write(f"**Форма применения:** {selected['Форма применения']}")
+            else:
+                st.write(f"**Игровые механики:** {selected['Игровые механики']}")
+                st.write(f"**Побочные эффекты:** {selected['Побочные эффекты']}")
+                st.write(f"**DC сбора:** {selected['DC сбора']}")
+                st.write(f"**Способ приготовления:** {selected['Способ приготовления']}")
+                st.write(f"**Стоимость продажи:** {selected['Стоимость продажи (зм)']} зм")
 
-    st.markdown("</div>", unsafe_allow_html=True)
+            st.markdown("</div>", unsafe_allow_html=True)
 
 
 # === Вкладки ===
