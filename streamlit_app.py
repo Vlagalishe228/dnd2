@@ -46,10 +46,12 @@ def show_ingredient(selected, is_plant=True):
     rarity = selected["Редкость"]
     description = selected["Описание"] if is_plant else selected["Основной эффект"]
 
-    header = f"{icon} {name} ({rarity})"
-    with st.expander(header):
-        st.markdown(f"**Описание:** {description}")
-        st.markdown("---")
+    # Отображаем заголовок и описание вручную
+    st.markdown(f"**{icon} {name} ({rarity})**")
+    st.markdown(f"Описание: {description}")
+
+    # Разворачиваемая панель для дополнительной информации
+    with st.expander("📖 Подробнее"):
         if is_plant:
             st.write(f"**Основной эффект:** {selected['Основной эффект']}")
             st.write(f"**Побочные эффекты:** {selected['Побочные эффекты']}")
@@ -127,6 +129,7 @@ with tab1:
     if st.session_state["plant_index"] >= 0:
         for item in st.session_state["plant_history"][st.session_state["plant_index"]]:
             show_ingredient(item, is_plant=True)
+            st.markdown("---")
 
 # === ЖИВОТНЫЕ ИНГРЕДИЕНТЫ ===
 with tab2:
@@ -174,3 +177,4 @@ with tab2:
     if st.session_state["animal_index"] >= 0:
         for item in st.session_state["animal_history"][st.session_state["animal_index"]]:
             show_ingredient(item, is_plant=False)
+            st.markdown("---")
