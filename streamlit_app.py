@@ -94,22 +94,29 @@ with tab1:
         st.session_state["plant_history"] = []
         st.session_state["plant_index"] = -1
 
-    col_btn1, col_btn2 = st.columns(2)
-    with col_btn1:
+    col_roll, col_back, col_forward = st.columns([2, 1, 1])
+    with col_roll:
         if st.button("🎲 Заролить ингредиенты (Травы)", key="roll_plant"):
             if filtered_df.empty:
                 st.warning("Нет ингредиентов, соответствующих выбранным фильтрам.")
             else:
-                new_roll = roll_ingredients(filtered_df, num)
-                st.session_state["plant_history"].append(new_roll)
+                roll = roll_ingredients(filtered_df, num)
+                st.session_state["plant_history"].append(roll)
                 st.session_state["plant_index"] = len(st.session_state["plant_history"]) - 1
 
-    with col_btn2:
-        if st.button("📄 Показать предыдущий результат (Травы)", key="prev_plant"):
+    with col_back:
+        if st.button("⬅️ Назад", key="plant_prev"):
             if st.session_state["plant_index"] > 0:
                 st.session_state["plant_index"] -= 1
             else:
-                st.info("Вы уже на первом ролле.")
+                st.info("Это самый первый результат.")
+
+    with col_forward:
+        if st.button("➡️ Вперёд", key="plant_next"):
+            if st.session_state["plant_index"] < len(st.session_state["plant_history"]) - 1:
+                st.session_state["plant_index"] += 1
+            else:
+                st.info("Это последний результат.")
 
     st.markdown("---")
     if st.session_state["plant_index"] >= 0:
@@ -134,22 +141,29 @@ with tab2:
         st.session_state["animal_history"] = []
         st.session_state["animal_index"] = -1
 
-    col_btn1, col_btn2 = st.columns(2)
-    with col_btn1:
+    col_roll, col_back, col_forward = st.columns([2, 1, 1])
+    with col_roll:
         if st.button("🎲 Заролить ингредиенты (Животные)", key="roll_animal"):
             if filtered_df.empty:
                 st.warning("Нет ингредиентов, соответствующих выбранным фильтрам.")
             else:
-                new_roll = roll_ingredients(filtered_df, num)
-                st.session_state["animal_history"].append(new_roll)
+                roll = roll_ingredients(filtered_df, num)
+                st.session_state["animal_history"].append(roll)
                 st.session_state["animal_index"] = len(st.session_state["animal_history"]) - 1
 
-    with col_btn2:
-        if st.button("📄 Показать предыдущий результат (Животные)", key="prev_animal"):
+    with col_back:
+        if st.button("⬅️ Назад", key="animal_prev"):
             if st.session_state["animal_index"] > 0:
                 st.session_state["animal_index"] -= 1
             else:
-                st.info("Вы уже на первом ролле.")
+                st.info("Это самый первый результат.")
+
+    with col_forward:
+        if st.button("➡️ Вперёд", key="animal_next"):
+            if st.session_state["animal_index"] < len(st.session_state["animal_history"]) - 1:
+                st.session_state["animal_index"] += 1
+            else:
+                st.info("Это последний результат.")
 
     st.markdown("---")
     if st.session_state["animal_index"] >= 0:
