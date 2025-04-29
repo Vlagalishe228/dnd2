@@ -38,6 +38,7 @@ def show_ingredient(selected, is_plant=True):
     rarity = selected["Редкость"]
     name = selected["Название"]
     description = selected["Описание"] if is_plant else selected["Основной эффект"]
+    dc_value = selected["DC сбора"]
 
     text_color = {
         "Обычный": "#e4e5e3",
@@ -63,12 +64,20 @@ def show_ingredient(selected, is_plant=True):
             border-radius: 12px;
             margin-bottom: 10px;
             box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         '>
-            <div style='color: {text_color}; font-size: 22px; font-weight: bold; margin-bottom: 6px'>
-                {circle_html}{name} ({rarity})
+            <div>
+                <div style='color: {text_color}; font-size: 22px; font-weight: bold; margin-bottom: 6px'>
+                    {circle_html}{name} ({rarity})
+                </div>
+                <div style='color: #eeeeee; font-size: 16px; font-style: italic'>
+                    Описание: {description}
+                </div>
             </div>
-            <div style='color: #eeeeee; font-size: 16px; font-style: italic'>
-                Описание: {description}
+            <div style='color: {text_color}; font-size: 16px; font-weight: bold; text-align: right;'>
+                DC: {dc_value}
             </div>
         </div>
     """, unsafe_allow_html=True)
@@ -77,7 +86,6 @@ def show_ingredient(selected, is_plant=True):
         if is_plant:
             st.write(f"**Основной эффект:** {selected['Основной эффект']}")
             st.write(f"**Побочные эффекты:** {selected['Побочные эффекты']}")
-            st.write(f"**DC сбора:** {selected['DC сбора']}")
             st.write(f"**Стоимость:** {selected['Стоимость']} малых печатей")
             st.write(f"**Среда обитания:** {selected['Среда обитания']}")
             st.write(f"**Тип:** {selected['Тип']}")
@@ -85,7 +93,6 @@ def show_ingredient(selected, is_plant=True):
         else:
             st.write(f"**Игровые механики:** {selected['Игровые механики']}")
             st.write(f"**Побочные эффекты:** {selected['Побочные эффекты']}")
-            st.write(f"**DC сбора:** {selected['DC сбора']}")
             st.write(f"**Способ приготовления:** {selected['Способ приготовления']}")
             st.write(f"**Стоимость продажи:** {selected['Стоимость продажи (зм)']} зм")
 
@@ -109,7 +116,7 @@ with tab1:
         if "plant_history" not in st.session_state:
             st.session_state["plant_history"] = []
             st.session_state["plant_index"] = -1
-        col_roll, col_back, col_forward = st.columns([2, 1, 1])
+        col_roll, col_back, col_forward = st.columns([1.8, 0.6, 0.6])
         with col_roll:
             if st.button("🎲 Заролить ингредиенты (Травы)", key="roll_plant"):
                 if filtered_df.empty:
@@ -119,13 +126,13 @@ with tab1:
                     st.session_state["plant_history"].append(roll)
                     st.session_state["plant_index"] = len(st.session_state["plant_history"]) - 1
         with col_back:
-            if st.button("⬅️ Назад", key="plant_prev"):
+            if st.button("\u25C0 Назад", key="plant_prev"):
                 if st.session_state["plant_index"] > 0:
                     st.session_state["plant_index"] -= 1
                 else:
                     st.info("Это самый первый результат.")
         with col_forward:
-            if st.button("➡️ Вперёд", key="plant_next"):
+            if st.button("Вперёд \u25B6", key="plant_next"):
                 if st.session_state["plant_index"] < len(st.session_state["plant_history"]) - 1:
                     st.session_state["plant_index"] += 1
                 else:
@@ -145,7 +152,7 @@ with tab2:
         if "animal_history" not in st.session_state:
             st.session_state["animal_history"] = []
             st.session_state["animal_index"] = -1
-        col_roll, col_back, col_forward = st.columns([2, 1, 1])
+        col_roll, col_back, col_forward = st.columns([1.8, 0.6, 0.6])
         with col_roll:
             if st.button("🎲 Заролить ингредиенты (Животные)", key="roll_animal"):
                 if filtered_df.empty:
@@ -155,13 +162,13 @@ with tab2:
                     st.session_state["animal_history"].append(roll)
                     st.session_state["animal_index"] = len(st.session_state["animal_history"]) - 1
         with col_back:
-            if st.button("⬅️ Назад", key="animal_prev"):
+            if st.button("\u25C0 Назад", key="animal_prev"):
                 if st.session_state["animal_index"] > 0:
                     st.session_state["animal_index"] -= 1
                 else:
                     st.info("Это самый первый результат.")
         with col_forward:
-            if st.button("➡️ Вперёд", key="animal_next"):
+            if st.button("Вперёд \u25B6", key="animal_next"):
                 if st.session_state["animal_index"] < len(st.session_state["animal_history"]) - 1:
                     st.session_state["animal_index"] += 1
                 else:
