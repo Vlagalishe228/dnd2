@@ -23,7 +23,6 @@ rarity_weights = {
     "Легендарный": 5
 }
 
-# === Функция взвешенного выбора ===
 def weighted_sample(df, seed=None):
     if seed is not None:
         random.seed(seed)
@@ -38,67 +37,96 @@ def weighted_sample(df, seed=None):
 # === Вкладки ===
 tab1, tab2 = st.tabs(["🌿 Травы", "🦴 Животные ингредиенты"])
 
-for tab, df, label in [(tab1, df_plants, "Травы"), (tab2, df_animals, "Животные")]:
-    with tab:
-        st.header(f"🎲 Генератор ингредиентов — {label}")
+# === ТРАВЫ ===
+with tab1:
+    st.header("🎲 Генератор ингредиентов — Травы")
 
-        # Seed
-        seed = st.number_input("🔁 Seed (для воспроизводимости)", value=0, step=1, key=f"seed_{label}")
+    seed = st.number_input("🔁 Seed (для воспроизводимости)", value=0, step=1, key="seed_plant")
 
-        # Фильтры
-        col1, col2 = st.columns(2)
-        with col1:
-            selected_rarity = st.multiselect(
-                "📊 Фильтр по редкости",
-                df["Редкость"].unique(),
-                default=df["Редкость"].unique(),
-                key=f"rarity_{label}"
-            )
-        with col2:
-            all_envs = sorted(set(", ".join(df["Среда обитания"].dropna()).split(", ")))
-            selected_env = st.multiselect(
-                "🌍 Среда обитания",
-                all_envs,
-                default=None,
-                key=f"env_{label}"
-            )
-
-        filtered_df = df[df["Редкость"].isin(selected_rarity)]
-        if selected_env:
-            filtered_df = filtered_df[filtered_df["Среда обитания"].str.contains("|".join(selected_env), na=False)]
-
-        # Сортировка
-        sort_col = st.selectbox(
-            "🔃 Сортировать по",
-            ["Нет", "Редкость", "Среда обитания"],
-            key=f"sort_{label}"
+    col1, col2 = st.columns(2)
+    with col1:
+        selected_rarity = st.multiselect(
+            "📊 Фильтр по редкости",
+            df_plants["Редкость"].unique(),
+            default=df_plants["Редкость"].unique(),
+            key="rarity_plant"
         )
-        if sort_col != "Нет":
-            filtered_df = filtered_df.sort_values(by=sort_col)
+    with col2:
+        all_envs = sorted(set(", ".join(df_plants["Среда обитания"].dropna()).split(", ")))
+        selected_env = st.multiselect(
+            "🌍 Среда обитания",
+            all_envs,
+            default=None,
+            key="env_plant"
+        )
 
-        # Кол-во ингредиентов
-        num = st.slider("🔢 Сколько ингредиентов выбрать?", 1, 10, 3, key=f"count_{label}")
+    filtered_df = df_plants[df_plants["Редкость"].isin(selected_rarity)]
+    if selected_env:
+        filtered_df = filtered_df[filtered_df["Среда обитания"].str.contains("|".join(selected_env), na=False)]
 
-        if st.button(f"Выбрать ингредиенты ({label})", key=f"button_{label}"):
-            for i in range(num):
-                selected = weighted_sample(filtered_df, seed + i)
-                if selected is not None:
-                    rarity_icon = {
-                        "Обычный": "⚪",
-                        "Необычный": "🟢",
-                        "Редкий": "🔵",
-                        "Легендарный": "🟣"
-                    }.get(selected["Редкость"], "❓")
+    sort_col = st.selectbox("🔃 Сортировать по", ["Нет", "Редкость", "Среда обитания"], key="sort_plant")
+    if sort_col != "Нет":
+        filtered_df = filtered_df.sort_values(by=sort_col)
 
-                    with st.expander(f"{rarity_icon} {selected['Название']} ({selected['Редкость']})"):
-                        st.write(f"**Описание:** {selected['Описание']}")
-                        st.write(f"**Основной эффект:** {selected['Основной эффект']}")
-                        st.write(f"**Побочные эффекты:** {selected['Побочные эффекты']}")
-                        st.write(f"**DC сбора:** {selected['DC сбора']}")
-                        st.write(f"**Стоимость:** {selected['Стоимость']} малых печатей")
-                        st.write(f"**Среда обитания:** {selected['Среда обитания']}")
-                        st.write(f"**Тип:** {selected['Тип']}")
-                        st.write(f"**Форма применения:** {selected['Форма применения']}")
-                else:
-                    st.warning("Ничего не найдено по заданным фильтрам.")
+    num = st.slider("🔢 Сколько ингредиентов выбрать?", 1, 10, 3, key="count_plant")
 
+    if st.button("Выбрать ингредиенты (Травы)", key="btn_plant"):
+        for i in range(num):
+            selected = weighted_sample(filtered_df, seed + i)
+            if selected is not None:
+                icon = {
+                    "Обычный": "⚪",
+                    "Необычный": "🟢",
+                    "Редкий": "🔵",
+                    "Легендарный": "🟣"
+                }.get(selected["Редкость"], "❓")
+
+                with st.expander(f"{icon} {selected['Название']} ({selected['Редкость']})"):
+                    st.write(f"**Описание:** {selected['Описание']}")
+                    st.write(f"**Основной эффект:** {selected['Основной эффект']}")
+                    st.write(f"**Побочные эффекты:** {selected['Побочные эффекты']}")
+                    st.write(f"**DC сбора:** {selected['DC сбора']}")
+                    st.write(f"**Стоимость:** {selected['Стоимость']} малых печатей")
+                    st.write(f"**Среда обитания:** {selected['Среда обитания']}")
+                    st.write(f"**Тип:** {selected['Тип']}")
+                    st.write(f"**Форма применения:** {selected['Форма применения']}")
+            else:
+                st.warning("Ничего не найдено по заданным фильтрам.")
+
+# === ЖИВОТНЫЕ ИНГРЕДИЕНТЫ ===
+with tab2:
+    st.header("🎲 Генератор ингредиентов — Животные")
+
+    seed = st.number_input("🔁 Seed (для воспроизводимости)", value=0, step=1, key="seed_animal")
+
+    selected_rarity = st.multiselect(
+        "📊 Фильтр по редкости",
+        df_animals["Редкость"].unique(),
+        default=df_animals["Редкость"].unique(),
+        key="rarity_animal"
+    )
+
+    filtered_df = df_animals[df_animals["Редкость"].isin(selected_rarity)]
+
+    num = st.slider("🔢 Сколько ингредиентов выбрать?", 1, 10, 3, key="count_animal")
+
+    if st.button("Выбрать ингредиенты (Животные)", key="btn_animal"):
+        for i in range(num):
+            selected = weighted_sample(filtered_df, seed + i)
+            if selected is not None:
+                icon = {
+                    "Обычный": "⚪",
+                    "Необычный": "🟢",
+                    "Редкий": "🔵",
+                    "Легендарный": "🟣"
+                }.get(selected["Редкость"], "❓")
+
+                with st.expander(f"{icon} {selected['Название']} ({selected['Редкость']})"):
+                    st.write(f"**Основной эффект:** {selected['Основной эффект']}")
+                    st.write(f"**Игровые механики:** {selected['Игровые механики']}")
+                    st.write(f"**Побочные эффекты:** {selected['Побочные эффекты']}")
+                    st.write(f"**DC сбора:** {selected['DC сбора']}")
+                    st.write(f"**Способ приготовления:** {selected['Способ приготовления']}")
+                    st.write(f"**Стоимость продажи:** {selected['Стоимость продажи (зм)']} зм")
+            else:
+                st.warning("Ничего не найдено по заданным фильтрам.")
