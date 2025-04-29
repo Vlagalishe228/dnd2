@@ -42,15 +42,32 @@ def show_ingredient(selected, is_plant=True):
         "Легендарный": "🟣"
     }.get(selected["Редкость"], "❓")
 
+    text_color = {
+        "Обычный": "#e4e5e3",
+        "Необычный": "#b3e9b8",
+        "Редкий": "#f0be7f",
+        "Легендарный": "#f7ed2d"
+    }.get(selected["Редкость"], "#ffffff")
+
+    bg_color = {
+        "Обычный": "#2f2f2f",
+        "Необычный": "#1f3f2f",
+        "Редкий": "#3f2f1f",
+        "Легендарный": "#3f3f0f"
+    }.get(selected["Редкость"], "#2f2f2f")
+
     name = selected["Название"]
     rarity = selected["Редкость"]
     description = selected["Описание"] if is_plant else selected["Основной эффект"]
 
-    # Отображаем заголовок и описание вручную
-    st.markdown(f"**{icon} {name} ({rarity})**")
-    st.markdown(f"Описание: {description}")
+    # Панель с цветным фоном и текстом
+    st.markdown(f"""
+        <div style='background-color:{bg_color}; padding: 15px; border-radius: 10px; margin-bottom:10px'>
+            <span style='color:{text_color}; font-weight:700; font-size:20px'>{icon} {name} ({rarity})</span><br>
+            <span style='color:#ffffff;'>Описание: {description}</span>
+        </div>
+    """, unsafe_allow_html=True)
 
-    # Разворачиваемая панель для дополнительной информации
     with st.expander("📖 Подробнее"):
         if is_plant:
             st.write(f"**Основной эффект:** {selected['Основной эффект']}")
@@ -129,7 +146,6 @@ with tab1:
     if st.session_state["plant_index"] >= 0:
         for item in st.session_state["plant_history"][st.session_state["plant_index"]]:
             show_ingredient(item, is_plant=True)
-            st.markdown("---")
 
 # === ЖИВОТНЫЕ ИНГРЕДИЕНТЫ ===
 with tab2:
@@ -177,4 +193,3 @@ with tab2:
     if st.session_state["animal_index"] >= 0:
         for item in st.session_state["animal_history"][st.session_state["animal_index"]]:
             show_ingredient(item, is_plant=False)
-            st.markdown("---")
