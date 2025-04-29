@@ -43,16 +43,17 @@ def show_ingredient(selected, is_plant=True):
     }.get(selected["Редкость"], "❓")
 
     name = selected["Название"]
-    summary = ""
+    rarity = selected["Редкость"]
+    description = selected["Описание"] if is_plant else selected["Основной эффект"]
+    summary = selected.get("Тип", "") if is_plant else selected.get("Способ приготовления", "")
 
-    if is_plant:
-        summary = f"Тип: {selected['Тип']} | Среда: {selected['Среда обитания']}"
-    else:
-        summary = f"Приготовление: {selected['Способ приготовления']}"
+    st.markdown(f"### {icon} {name} ({rarity})")
+    st.markdown(f"**{description}**")
+    if summary:
+        st.caption(summary)
 
-    with st.expander(f"{icon} {name} — {summary}"):
+    with st.expander("📖 Подробнее"):
         if is_plant:
-            st.write(f"**Описание:** {selected['Описание']}")
             st.write(f"**Основной эффект:** {selected['Основной эффект']}")
             st.write(f"**Побочные эффекты:** {selected['Побочные эффекты']}")
             st.write(f"**DC сбора:** {selected['DC сбора']}")
@@ -61,7 +62,6 @@ def show_ingredient(selected, is_plant=True):
             st.write(f"**Тип:** {selected['Тип']}")
             st.write(f"**Форма применения:** {selected['Форма применения']}")
         else:
-            st.write(f"**Основной эффект:** {selected['Основной эффект']}")
             st.write(f"**Игровые механики:** {selected['Игровые механики']}")
             st.write(f"**Побочные эффекты:** {selected['Побочные эффекты']}")
             st.write(f"**DC сбора:** {selected['DC сбора']}")
