@@ -42,7 +42,15 @@ def show_ingredient(selected, is_plant=True):
         "Легендарный": "🟣"
     }.get(selected["Редкость"], "❓")
 
-    with st.expander(f"{icon} {selected['Название']} ({selected['Редкость']})", expanded=True):
+    name = selected["Название"]
+    summary = ""
+
+    if is_plant:
+        summary = f"Тип: {selected['Тип']} | Среда: {selected['Среда обитания']}"
+    else:
+        summary = f"Приготовление: {selected['Способ приготовления']}"
+
+    with st.expander(f"{icon} {name} — {summary}"):
         if is_plant:
             st.write(f"**Описание:** {selected['Описание']}")
             st.write(f"**Основной эффект:** {selected['Основной эффект']}")
