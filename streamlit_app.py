@@ -1,5 +1,3 @@
-# Обновлённый код с сохранением и отображением предыдущего результата отдельно
-updated_code_with_prev = """
 import streamlit as st
 import pandas as pd
 import random
@@ -41,6 +39,32 @@ def roll_ingredients(df, num):
             results.append(selected)
     return results
 
+def show_ingredient(selected, is_plant=True):
+    icon = {
+        "Обычный": "⚪",
+        "Необычный": "🟢",
+        "Редкий": "🔵",
+        "Легендарный": "🟣"
+    }.get(selected["Редкость"], "❓")
+
+    with st.expander(f"{icon} {selected['Название']} ({selected['Редкость']})"):
+        if is_plant:
+            st.write(f"**Описание:** {selected['Описание']}")
+            st.write(f"**Основной эффект:** {selected['Основной эффект']}")
+            st.write(f"**Побочные эффекты:** {selected['Побочные эффекты']}")
+            st.write(f"**DC сбора:** {selected['DC сбора']}")
+            st.write(f"**Стоимость:** {selected['Стоимость']} малых печатей")
+            st.write(f"**Среда обитания:** {selected['Среда обитания']}")
+            st.write(f"**Тип:** {selected['Тип']}")
+            st.write(f"**Форма применения:** {selected['Форма применения']}")
+        else:
+            st.write(f"**Основной эффект:** {selected['Основной эффект']}")
+            st.write(f"**Игровые механики:** {selected['Игровые механики']}")
+            st.write(f"**Побочные эффекты:** {selected['Побочные эффекты']}")
+            st.write(f"**DC сбора:** {selected['DC сбора']}")
+            st.write(f"**Способ приготовления:** {selected['Способ приготовления']}")
+            st.write(f"**Стоимость продажи:** {selected['Стоимость продажи (зм)']} зм")
+
 # === Вкладки ===
 tab1, tab2 = st.tabs(["🌿 Травы", "🦴 Животные ингредиенты"])
 
@@ -72,57 +96,27 @@ with tab1:
     num = st.slider("🔢 Сколько ингредиентов заролить?", 1, 10, 3, key="count_plant")
 
     col1, col2 = st.columns(2)
+
     with col1:
         if st.button("🎲 Заролить ингредиенты (Травы)", key="roll_plant"):
             if filtered_df.empty:
                 st.warning("Нет ингредиентов, соответствующих выбранным фильтрам.")
             else:
-                rolled = roll_ingredients(filtered_df, num)
-                # Сохраняем предыдущий результат отдельно
+                new_roll = roll_ingredients(filtered_df, num)
                 if "last_plant_result" in st.session_state:
                     st.session_state["prev_plant_result"] = st.session_state["last_plant_result"]
-                st.session_state["last_plant_result"] = rolled
+                st.session_state["last_plant_result"] = new_roll
 
-                for selected in rolled:
-                    icon = {
-                        "Обычный": "⚪",
-                        "Необычный": "🟢",
-                        "Редкий": "🔵",
-                        "Легендарный": "🟣"
-                    }.get(selected["Редкость"], "❓")
-
-                    with st.expander(f"{icon} {selected['Название']} ({selected['Редкость']})"):
-                        st.write(f"**Описание:** {selected['Описание']}")
-                        st.write(f"**Основной эффект:** {selected['Основной эффект']}")
-                        st.write(f"**Побочные эффекты:** {selected['Побочные эффекты']}")
-                        st.write(f"**DC сбора:** {selected['DC сбора']}")
-                        st.write(f"**Стоимость:** {selected['Стоимость']} малых печатей")
-                        st.write(f"**Среда обитания:** {selected['Среда обитания']}")
-                        st.write(f"**Тип:** {selected['Тип']}")
-                        st.write(f"**Форма применения:** {selected['Форма применения']}")
+                for item in new_roll:
+                    show_ingredient(item, is_plant=True)
 
     with col2:
         if st.button("📄 Показать предыдущий результат (Травы)", key="prev_plant"):
-            if "prev_plant_result" not in st.session_state:
-                st.info("Предыдущий результат не найден.")
+            if "prev_plant_result" in st.session_state:
+                for item in st.session_state["prev_plant_result"]:
+                    show_ingredient(item, is_plant=True)
             else:
-                for selected in st.session_state["prev_plant_result"]:
-                    icon = {
-                        "Обычный": "⚪",
-                        "Необычный": "🟢",
-                        "Редкий": "🔵",
-                        "Легендарный": "🟣"
-                    }.get(selected["Редкость"], "❓")
-
-                    with st.expander(f"{icon} {selected['Название']} ({selected['Редкость']})"):
-                        st.write(f"**Описание:** {selected['Описание']}")
-                        st.write(f"**Основной эффект:** {selected['Основной эффект']}")
-                        st.write(f"**Побочные эффекты:** {selected['Побочные эффекты']}")
-                        st.write(f"**DC сбора:** {selected['DC сбора']}")
-                        st.write(f"**Стоимость:** {selected['Стоимость']} малых печатей")
-                        st.write(f"**Среда обитания:** {selected['Среда обитания']}")
-                        st.write(f"**Тип:** {selected['Тип']}")
-                        st.write(f"**Форма применения:** {selected['Форма применения']}")
+                st.info("Предыдущий результат ещё не сохранён.")
 
 # === ЖИВОТНЫЕ ИНГРЕДИЕНТЫ ===
 with tab2:
@@ -139,57 +133,24 @@ with tab2:
     num = st.slider("🔢 Сколько ингредиентов заролить?", 1, 10, 3, key="count_animal")
 
     col1, col2 = st.columns(2)
+
     with col1:
         if st.button("🎲 Заролить ингредиенты (Животные)", key="roll_animal"):
             if filtered_df.empty:
                 st.warning("Нет ингредиентов, соответствующих выбранным фильтрам.")
             else:
-                rolled = roll_ingredients(filtered_df, num)
+                new_roll = roll_ingredients(filtered_df, num)
                 if "last_animal_result" in st.session_state:
                     st.session_state["prev_animal_result"] = st.session_state["last_animal_result"]
-                st.session_state["last_animal_result"] = rolled
+                st.session_state["last_animal_result"] = new_roll
 
-                for selected in rolled:
-                    icon = {
-                        "Обычный": "⚪",
-                        "Необычный": "🟢",
-                        "Редкий": "🔵",
-                        "Легендарный": "🟣"
-                    }.get(selected["Редкость"], "❓")
-
-                    with st.expander(f"{icon} {selected['Название']} ({selected['Редкость']})"):
-                        st.write(f"**Основной эффект:** {selected['Основной эффект']}")
-                        st.write(f"**Игровые механики:** {selected['Игровые механики']}")
-                        st.write(f"**Побочные эффекты:** {selected['Побочные эффекты']}")
-                        st.write(f"**DC сбора:** {selected['DC сбора']}")
-                        st.write(f"**Способ приготовления:** {selected['Способ приготовления']}")
-                        st.write(f"**Стоимость продажи:** {selected['Стоимость продажи (зм)']} зм")
+                for item in new_roll:
+                    show_ingredient(item, is_plant=False)
 
     with col2:
         if st.button("📄 Показать предыдущий результат (Животные)", key="prev_animal"):
-            if "prev_animal_result" not in st.session_state:
-                st.info("Предыдущий результат не найден.")
+            if "prev_animal_result" in st.session_state:
+                for item in st.session_state["prev_animal_result"]:
+                    show_ingredient(item, is_plant=False)
             else:
-                for selected in st.session_state["prev_animal_result"]:
-                    icon = {
-                        "Обычный": "⚪",
-                        "Необычный": "🟢",
-                        "Редкий": "🔵",
-                        "Легендарный": "🟣"
-                    }.get(selected["Редкость"], "❓")
-
-                    with st.expander(f"{icon} {selected['Название']} ({selected['Редкость']})"):
-                        st.write(f"**Основной эффект:** {selected['Основной эффект']}")
-                        st.write(f"**Игровые механики:** {selected['Игровые механики']}")
-                        st.write(f"**Побочные эффекты:** {selected['Побочные эффекты']}")
-                        st.write(f"**DC сбора:** {selected['DC сбора']}")
-                        st.write(f"**Способ приготовления:** {selected['Способ приготовления']}")
-                        st.write(f"**Стоимость продажи:** {selected['Стоимость продажи (зм)']} зм")
-"""
-
-# Сохраняем финальный файл
-final_file_path = "/mnt/data/streamlit_app.py"
-with open(final_file_path, "w", encoding="utf-8") as f:
-    f.write(updated_code_with_prev)
-
-final_file_path
+                st.info("Предыдущий результат ещё не сохранён.")
