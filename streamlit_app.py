@@ -100,34 +100,10 @@ elif page == "🦴 Животные ингредиенты":
 
 
 # Выбор режима в сайдбаре
+
 page = st.sidebar.radio("🔍 Выберите раздел", ["🌿 Травы", "🦴 Животные ингредиенты", "🧪 Случайное зелье"])
 
-
 if page == "🌿 Травы":
-
-    col_left, col_center, col_right = st.columns([1, 2.5, 1])
-    with col_center:
-        st.header("🎲 Генератор ингредиентов — Травы")
-        col1, col2 = st.columns(2)
-        with col1:
-            selected_rarity = st.multiselect("📊 Фильтр по редкости", df_plants["Редкость"].unique(), default=df_plants["Редкость"].unique(), key="rarity_plant")
-        with col2:
-            all_envs = sorted(set(", ".join(df_plants["Среда обитания"].dropna()).split(", ")))
-            selected_env = st.multiselect("🌍 Среда обитания", all_envs, default=None, key="env_plant")
-        filtered_df = df_plants[df_plants["Редкость"].isin(selected_rarity)]
-        if selected_env:
-            filtered_df = filtered_df[filtered_df["Среда обитания"].str.contains("|".join(selected_env), na=False)]
-        num = st.slider("🔢 Сколько ингредиентов заролить?", 1, 10, 3, key="count_plant")
-        if "plant_history" not in st.session_state:
-            st.session_state["plant_history"] = []
-            st.session_state["plant_index"] = -1
-        col_roll, col_back, col_forward = st.columns([2, 0.5, 0.5])
-        with col_roll:
-            roll_clicked = st.button("🎲 Заролить ингредиенты (Травы)", key="roll_plant_main")
-            if roll_clicked:
-                if filtered_df.empty:
-                    st.warning("Нет ингредиентов, соответствующих выбранным фильтрам.")
-                
 elif page == "🦴 Животные ингредиенты":
                     roll = roll_ingredients(filtered_df, num)
                     st.session_state["plant_history"].append(roll)
@@ -196,29 +172,49 @@ elif page == "🦴 Животные ингредиенты":
 # 🎲 СЛУЧАЙНОЕ ЗЕЛЬЕ
 # ==============================
 
+
+# ==============================
+# 🎲 СЛУЧАЙНОЕ ЗЕЛЬЕ
+# ==============================
 elif page == "🧪 Случайное зелье":
     st.header("🎲 Случайное зелье")
 
     if "used_combinations" not in st.session_state:
         st.session_state["used_combinations"] = set()
 
-    def generate_fantasy_name(rarity):
-        adjectives = {
-            "Обычный": ["Простой", "Мутный", "Старый", "Затхлый", "Пыльный"],
-            "Необычный": ["Мшистый", "Лунный", "Шепчущий", "Туманный", "Тлеющий"],
-            "Редкий": ["Кровавый", "Звёздный", "Морозный", "Огненный", "Осквернённый"],
-            "Легендарный": ["Древний", "Божественный", "Архаичный", "Запретный", "Вечный"]
-        }
-        nouns = {
-            "Обычный": ["Флакон", "Настой", "Эликсир", "Микстура", "Порошок"],
-            "Необычный": ["Язва", "Шепот", "Коготь", "Всплеск", "Кристалл"],
-            "Редкий": ["Тень", "Гнев", "Осколок", "Жало", "Хвост"],
-            "Легендарный": ["Проклятие", "Зов", "Свет", "Тьма", "Сущность"]
-        }
+    def genitive_form(name):
+        name = name.strip()
+        if name.endswith("а"):
+            return name[:-1] + "ы"
+        elif name.endswith("я"):
+            return name[:-1] + "и"
+        return name
+
+    def extract_core(name):
+        return name.split()[0]
+
+    def generate_fantasy_name(plant, animal):
         import random
-        adj = random.choice(adjectives.get(rarity, ["Тайный"]))
-        noun = random.choice(nouns.get(rarity, ["Эссенция"]))
-        return f"{adj} {noun}"
+        templates = [
+            "Эликсир {plant_gen}",
+            "Настой {animal_gen}",
+            "Зелье {animal_core} и {plant_core}",
+            "Флакон {animal_core}",
+            "Эссенция {plant_core}",
+            "Отвар {animal_core} и {plant_core}",
+            "Зелье из {plant_gen} и {animal_gen}"
+        ]
+        plant_gen = genitive_form(plant)
+        animal_gen = genitive_form(animal)
+        plant_core = extract_core(plant)
+        animal_core = extract_core(animal)
+        template = random.choice(templates)
+        return template.format(
+            plant_gen=plant_gen,
+            animal_gen=animal_gen,
+            plant_core=plant_core,
+            animal_core=animal_core
+        )
 
     if st.button("Создать зелье"):
         import random
@@ -236,11 +232,10 @@ elif page == "🧪 Случайное зелье":
             st.stop()
 
         rarity = random.choice([plant["Редкость"], animal["Редкость"]])
-        potion_name = generate_fantasy_name(rarity)
+        potion_name = generate_fantasy_name(plant['Название'], animal['Название'])
 
         effect = f"{plant['Основной эффект']} + {animal['Игровые механики']}"
         side_effects = f"{plant['Побочные эффекты']}, {animal['Побочные эффекты']}"
-
         dc_text = f"DC: {max(plant['DC сбора'], animal['DC сбора'])}"
         composition = f"🌿 {plant['Название']} — {plant['Описание']}\n🦴 {animal['Название']} — {animal.get('Описание', animal.get('Основной эффект', ''))}"
 
