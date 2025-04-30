@@ -96,20 +96,60 @@ def show_ingredient(selected, is_plant=True):
             st.write(f"**Способ приготовления:** {selected['Способ приготовления']}")
             st.write(f"**Стоимость продажи:** {selected['Стоимость продажи (зм)']} зм")
 
-# Выбор раздела
 page = st.sidebar.radio("🔍 Выберите раздел", ["🌿 Травы", "🦴 Животные ингредиенты", "🧪 Случайное зелье"])
 
 if page == "🌿 Травы":
     st.header("🌿 Травы")
-    selected_plants = roll_ingredients(df_plants, 3)
-    for plant in selected_plants:
-        show_ingredient(plant, is_plant=True)
+
+    rarity_filter = st.multiselect("Фильтр по редкости", df_plants["Редкость"].unique(), default=df_plants["Редкость"].unique())
+    habitat_filter = st.multiselect("Фильтр по среде обитания", df_plants["Среда обитания"].unique(), default=df_plants["Среда обитания"].unique())
+
+    filtered = df_plants[df_plants["Редкость"].isin(rarity_filter) & df_plants["Среда обитания"].isin(habitat_filter)]
+
+    if "plant_history" not in st.session_state:
+        st.session_state["plant_history"] = []
+        st.session_state["plant_index"] = -1
+
+    col_roll, col_back, col_forward = st.columns([2, 0.5, 0.5])
+    with col_roll:
+        if st.button("🎲 Заролить ингредиенты"):
+            rolled = [weighted_sample(filtered) for _ in range(3)]
+            st.session_state["plant_history"].append(rolled)
+            st.session_state["plant_index"] = len(st.session_state["plant_history"]) - 1
+    with col_back:
+        if st.button("◀", key="plant_prev") and st.session_state["plant_index"] > 0:
+            st.session_state["plant_index"] -= 1
+    with col_forward:
+        if st.button("▶", key="plant_next") and st.session_state["plant_index"] < len(st.session_state["plant_history"]) - 1:
+            st.session_state["plant_index"] += 1
+
+    if st.session_state["plant_index"] >= 0:
+        for plant in st.session_state["plant_history"][st.session_state["plant_index"]]:
+            show_ingredient(plant, is_plant=True)
 
 elif page == "🦴 Животные ингредиенты":
     st.header("🦴 Животные ингредиенты")
-    selected_animals = roll_ingredients(df_animals, 3)
-    for animal in selected_animals:
-        show_ingredient(animal, is_plant=False)
+
+    if "animal_history" not in st.session_state:
+        st.session_state["animal_history"] = []
+        st.session_state["animal_index"] = -1
+
+    col_roll, col_back, col_forward = st.columns([2, 0.5, 0.5])
+    with col_roll:
+        if st.button("🎲 Заролить ингредиенты"):
+            rolled = [weighted_sample(df_animals) for _ in range(3)]
+            st.session_state["animal_history"].append(rolled)
+            st.session_state["animal_index"] = len(st.session_state["animal_history"]) - 1
+    with col_back:
+        if st.button("◀", key="animal_prev") and st.session_state["animal_index"] > 0:
+            st.session_state["animal_index"] -= 1
+    with col_forward:
+        if st.button("▶", key="animal_next") and st.session_state["animal_index"] < len(st.session_state["animal_history"]) - 1:
+            st.session_state["animal_index"] += 1
+
+    if st.session_state["animal_index"] >= 0:
+        for animal in st.session_state["animal_history"][st.session_state["animal_index"]]:
+            show_ingredient(animal, is_plant=False)
 
 elif page == "🧪 Случайное зелье":
     st.header("🎲 Случайное зелье")
@@ -175,7 +215,6 @@ elif page == "🧪 Случайное зелье":
                 st.stop()
             st.session_state["potion_history"].append((plant, animal))
             st.session_state["potion_index"] = len(st.session_state["potion_history"]) - 1
-
     with col_back:
         if st.button("◀", key="potion_prev"):
             if st.session_state["potion_index"] > 0:
@@ -184,8 +223,6 @@ elif page == "🧪 Случайное зелье":
         if st.button("▶", key="potion_next"):
             if st.session_state["potion_index"] < len(st.session_state["potion_history"]) - 1:
                 st.session_state["potion_index"] += 1
-
-    st.markdown("---")
 
     if st.session_state["potion_index"] >= 0:
         plant, animal = st.session_state["potion_history"][st.session_state["potion_index"]]
