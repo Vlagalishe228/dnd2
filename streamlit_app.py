@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import random
+from streamlit.components.v1 import html
 
 st.set_page_config(page_title="Генератор ингредиентов DnD", layout="wide")
 
@@ -96,11 +97,57 @@ def show_ingredient(selected, is_plant=True):
             st.write(f"**Способ приготовления:** {selected['Способ приготовления']}")
             st.write(f"**Стоимость продажи:** {selected['Стоимость продажи (зм)']} зм")
 
-# Выбор режима в сайдбаре
+def navigation_buttons():
+    st.markdown("""
+    <style>
+        .nav-button {
+            font-size: 20px;
+            padding: 8px 20px;
+            margin: 0 5px;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #2f2f2f;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .nav-button:hover {
+            background-color: #3f3f3f;
+            transform: scale(1.1);
+        }
+        .nav-container {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+    </style>
+    """, unsafe_allow_html=True)
+    
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        st.markdown("""
+        <div class="nav-container">
+            <button class="nav-button" onclick="window.historyBack()">←</button>
+            <button class="nav-button" onclick="window.historyForward()">→</button>
+        </div>
+        """, unsafe_allow_html=True)
+
+# Инициализация истории в session_state
+if 'history' not in st.session_state:
+    st.session_state.history = []
+if 'history_index' not in st.session_state:
+    st.session_state.history_index = -1
+
 page = st.sidebar.radio("🔍 Выберите раздел", ["🌿 Травы", "🦴 Животные ингредиенты", "🧪 Случайное зелье"])
 
 if page == "🌿 Травы":
     st.header("🌿 Генератор трав")
+    
     num_plants = st.slider("Количество ингредиентов", 1, 10, 3)
     selected_rarities = st.multiselect(
         "📊 Желаемые редкости", 
@@ -111,11 +158,41 @@ if page == "🌿 Травы":
     if st.button("🎲 Сгенерировать"):
         filtered_plants = df_plants[df_plants["Редкость"].isin(selected_rarities)]
         ingredients = roll_ingredients(filtered_plants, num_plants)
-        for ing in ingredients:
-            show_ingredient(ing, is_plant=True)
+        
+        # Сохраняем в историю
+        st.session_state.history.append({
+            "type": "plants",
+            "data": ingredients,
+            "rarities": selected_rarities,
+            "count": num_plants
+        })
+        st.session_state.history_index = len(st.session_state.history) - 1
+    
+    # Показываем текущую генерацию
+    if st.session_state.history_index >= 0:
+        current = st.session_state.history[st.session_state.history_index]
+        if current["type"] == "plants":
+            for ing in current["data"]:
+                show_ingredient(ing, is_plant=True)
+    
+    # Навигация по истории
+    if len(st.session_state.history) > 1:
+        navigation_buttons()
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            if st.button("← Назад") and st.session_state.history_index > 0:
+                st.session_state.history_index -= 1
+                st.experimental_rerun()
+        with col3:
+            if st.button("Вперёд →") and st.session_state.history_index < len(st.session_state.history) - 1:
+                st.session_state.history_index += 1
+                st.experimental_rerun()
+        with col2:
+            st.write(f"Генерация {st.session_state.history_index + 1} из {len(st.session_state.history)}")
 
 elif page == "🦴 Животные ингредиенты":
     st.header("🦴 Генератор животных ингредиентов")
+    
     num_animals = st.slider("Количество ингредиентов", 1, 10, 3)
     selected_rarities = st.multiselect(
         "📊 Желаемые редкости", 
@@ -126,8 +203,37 @@ elif page == "🦴 Животные ингредиенты":
     if st.button("🎲 Сгенерировать"):
         filtered_animals = df_animals[df_animals["Редкость"].isin(selected_rarities)]
         ingredients = roll_ingredients(filtered_animals, num_animals)
-        for ing in ingredients:
-            show_ingredient(ing, is_plant=False)
+        
+        # Сохраняем в историю
+        st.session_state.history.append({
+            "type": "animals",
+            "data": ingredients,
+            "rarities": selected_rarities,
+            "count": num_animals
+        })
+        st.session_state.history_index = len(st.session_state.history) - 1
+    
+    # Показываем текущую генерацию
+    if st.session_state.history_index >= 0:
+        current = st.session_state.history[st.session_state.history_index]
+        if current["type"] == "animals":
+            for ing in current["data"]:
+                show_ingredient(ing, is_plant=False)
+    
+    # Навигация по истории
+    if len(st.session_state.history) > 1:
+        navigation_buttons()
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            if st.button("← Назад") and st.session_state.history_index > 0:
+                st.session_state.history_index -= 1
+                st.experimental_rerun()
+        with col3:
+            if st.button("Вперёд →") and st.session_state.history_index < len(st.session_state.history) - 1:
+                st.session_state.history_index += 1
+                st.experimental_rerun()
+        with col2:
+            st.write(f"Генерация {st.session_state.history_index + 1} из {len(st.session_state.history)}")
 
 elif page == "🧪 Случайное зелье":
     st.header("🎲 Случайное зелье")
