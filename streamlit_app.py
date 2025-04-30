@@ -6,7 +6,12 @@ st.set_page_config(page_title="Генератор ингредиентов DnD",
 
 @st.cache_data
 def load_plant_data():
-    return pd.read_excel("ingredients.xlsx")
+    df = pd.read_excel("ingredients.xlsx")
+    # Приводим среду обитания к нормальной форме
+    df["Среда обитания"] = df["Среда обитания"].str.strip().str.capitalize()
+    df = df[~df["Среда обитания"].isin(["Весна", "Лето", "Осень", "Зима"])]
+    df["Среда обитания"] = df["Среда обитания"].replace({"Лес": "Лес", "лес": "Лес"})
+    return df
 
 @st.cache_data
 def load_animal_data():
@@ -35,6 +40,8 @@ def roll_ingredients(df, num):
     return [weighted_sample(df) for _ in range(num)]
 
 def show_ingredient(selected, is_plant=True):
+    if selected is None:
+        return
     rarity = selected["Редкость"]
     name = selected["Название"]
     description = selected["Описание"] if is_plant else selected.get("Описание", selected.get("Основной эффект", ""))
@@ -101,8 +108,9 @@ page = st.sidebar.radio("🔍 Выберите раздел", ["🌿 Травы"
 if page == "🌿 Травы":
     st.header("🌿 Травы")
 
-    rarity_filter = st.multiselect("Фильтр по редкости", df_plants["Редкость"].unique(), default=df_plants["Редкость"].unique())
-    habitat_filter = st.multiselect("Фильтр по среде обитания", df_plants["Среда обитания"].unique(), default=df_plants["Среда обитания"].unique())
+    rarity_filter = st.multiselect("Фильтр по редкости", sorted(df_plants["Редкость"].unique()), default=sorted(df_plants["Редкость"].unique()))
+    habitats = sorted(df_plants["Среда обитания"].dropna().unique())
+    habitat_filter = st.multiselect("Фильтр по среде обитания", habitats, default=habitats)
 
     filtered = df_plants[df_plants["Редкость"].isin(rarity_filter) & df_plants["Среда обитания"].isin(habitat_filter)]
 
@@ -113,9 +121,12 @@ if page == "🌿 Травы":
     col_roll, col_back, col_forward = st.columns([2, 0.5, 0.5])
     with col_roll:
         if st.button("🎲 Заролить ингредиенты"):
-            rolled = [weighted_sample(filtered) for _ in range(3)]
-            st.session_state["plant_history"].append(rolled)
-            st.session_state["plant_index"] = len(st.session_state["plant_history"]) - 1
+            if filtered.empty:
+                st.warning("Нет ингредиентов, соответствующих выбранным фильтрам!")
+            else:
+                rolled = [weighted_sample(filtered) for _ in range(3)]
+                st.session_state["plant_history"].append(rolled)
+                st.session_state["plant_index"] = len(st.session_state["plant_history"]) - 1
     with col_back:
         if st.button("◀", key="plant_prev") and st.session_state["plant_index"] > 0:
             st.session_state["plant_index"] -= 1
