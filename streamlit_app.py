@@ -35,9 +35,6 @@ def weighted_sample(df):
         return None
     return df.loc[random.choice(weighted_list)]
 
-def roll_ingredients(df, num):
-    return [weighted_sample(df) for _ in range(num)]
-
 def show_ingredient(selected, is_plant=True):
     if selected is None:
         return
@@ -109,9 +106,7 @@ if page == "🌿 Травы":
 
     rarity_filter = st.multiselect("Фильтр по редкости", sorted(df_plants["Редкость"].unique()), default=sorted(df_plants["Редкость"].unique()))
     habitats = sorted(df_plants["Среда обитания"].dropna().unique())
-
-    with st.expander("🌍 Среда обитания"):
-        habitat_filter = st.multiselect("Выберите среду:", habitats, default=habitats)
+    habitat_filter = st.multiselect("Фильтр по местности", habitats, default=habitats)
 
     filtered = df_plants[df_plants["Редкость"].isin(rarity_filter) & df_plants["Среда обитания"].isin(habitat_filter)]
 
