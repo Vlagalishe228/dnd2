@@ -233,11 +233,7 @@ elif page == "🧪 Случайное зелье":
         side_effects = f"{plant['Побочные эффекты']}, {animal['Побочные эффекты']}"
 
         dc_text = f"DC: {max(plant['DC сбора'], animal['DC сбора'])}"
-        description = f"{plant['Описание']}"
-        if 'Описание' in animal:
-            description += f" И добавлен {animal['Описание']}."
-        elif 'Основной эффект' in animal:
-            description += f" И добавлен эффект: {animal['Основной эффект']}."
+        composition = f"🌿 {plant['Название']} — {plant['Описание']}\n🦴 {animal['Название']} — {animal.get('Описание', animal.get('Основной эффект', ''))}"
 
         color_map = {
             "Обычный": "#e4e5e3",
@@ -262,6 +258,6 @@ elif page == "🧪 Случайное зелье":
             </div>
             <p><strong>Эффект:</strong> {effect}</p>
             <p><strong>Побочные эффекты:</strong> {side_effects}</p>
-            <p><strong>Описание:</strong> {description}</p>
+            <p><strong>Состав:</strong><br>{composition.replace(chr(10), "<br>")}</p>
         </div>
         """, unsafe_allow_html=True)
