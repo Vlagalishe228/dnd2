@@ -90,7 +90,7 @@ def show_ingredient(selected, is_plant=True):
             st.write(f"**Среда обитания:** {selected['Среда обитания']}")
             st.write(f"**Тип:** {selected['Тип']}")
             st.write(f"**Форма применения:** {selected['Форма применения']}")
-        else:
+        elif page == "🦴 Животные ингредиенты":
             st.write(f"**Игровые механики:** {selected['Игровые механики']}")
             st.write(f"**Побочные эффекты:** {selected['Побочные эффекты']}")
             st.write(f"**Способ приготовления:** {selected['Способ приготовления']}")
@@ -125,7 +125,7 @@ if page == "🌿 Травы":
             if roll_clicked:
                 if filtered_df.empty:
                     st.warning("Нет ингредиентов, соответствующих выбранным фильтрам.")
-                else:
+                elif page == "🦴 Животные ингредиенты":
                     roll = roll_ingredients(filtered_df, num)
                     st.session_state["plant_history"].append(roll)
                     st.session_state["plant_index"] = len(st.session_state["plant_history"]) - 1
@@ -133,20 +133,20 @@ if page == "🌿 Травы":
             if st.button("◀ Назад", key="plant_prev"):
                 if st.session_state["plant_index"] > 0:
                     st.session_state["plant_index"] -= 1
-                else:
+                elif page == "🦴 Животные ингредиенты":
                     st.info("Это самый первый результат.")
         with col_forward:
             if st.button("Вперёд ▶", key="plant_next"):
                 if st.session_state["plant_index"] < len(st.session_state["plant_history"]) - 1:
                     st.session_state["plant_index"] += 1
-                else:
+                elif page == "🦴 Животные ингредиенты":
                     st.info("Это последний результат.")
         st.markdown("---")
         if st.session_state["plant_index"] >= 0:
             for item in st.session_state["plant_history"][st.session_state["plant_index"]]:
                 show_ingredient(item, is_plant=True)
 
-else:
+elif page == "🦴 Животные ингредиенты":
     col_left, col_center, col_right = st.columns([1, 2.5, 1])
     with col_center:
         st.header("🎲 Генератор ингредиентов — Животные")
@@ -161,7 +161,7 @@ else:
             if st.button("🎲 Заролить ингредиенты (Животные)", key="roll_animal"):
                 if filtered_df.empty:
                     st.warning("Нет ингредиентов, соответствующих выбранным фильтрам.")
-                else:
+                elif page == "🦴 Животные ингредиенты":
                     roll = roll_ingredients(filtered_df, num)
                     st.session_state["animal_history"].append(roll)
                     st.session_state["animal_index"] = len(st.session_state["animal_history"]) - 1
@@ -169,7 +169,7 @@ else:
             if st.button("◀ Назад", key="animal_prev"):
                 if st.session_state["animal_index"] > 0:
                     st.session_state["animal_index"] -= 1
-                else:
+                elif page == "🦴 Животные ингредиенты":
                     st.info("Это самый первый результат.")
         with col_forward:
             if st.button("Вперёд ▶", key="animal_next"):
