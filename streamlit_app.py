@@ -97,9 +97,12 @@ def show_ingredient(selected, is_plant=True):
             st.write(f"**Стоимость продажи:** {selected['Стоимость продажи (зм)']} зм")
 
 
-tab1, tab2 = st.tabs(["🌿 Травы", "🦴 Животные ингредиенты"])
 
-with tab1:
+# Выбор режима в сайдбаре
+page = st.sidebar.radio("🔍 Выберите раздел", ["🌿 Травы", "🦴 Животные ингредиенты"])
+
+if page == "🌿 Травы":
+
     col_left, col_center, col_right = st.columns([1, 2.5, 1])
     with col_center:
         st.header("🎲 Генератор ингредиентов — Травы")
@@ -143,7 +146,7 @@ with tab1:
             for item in st.session_state["plant_history"][st.session_state["plant_index"]]:
                 show_ingredient(item, is_plant=True)
 
-with tab2:
+else:
     col_left, col_center, col_right = st.columns([1, 2.5, 1])
     with col_center:
         st.header("🎲 Генератор ингредиентов — Животные")
