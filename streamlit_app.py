@@ -101,81 +101,17 @@ elif page == "🦴 Животные ингредиенты":
 
 # Выбор режима в сайдбаре
 
+
 page = st.sidebar.radio("🔍 Выберите раздел", ["🌿 Травы", "🦴 Животные ингредиенты", "🧪 Случайное зелье"])
 
 if page == "🌿 Травы":
-elif page == "🦴 Животные ингредиенты":
-    roll = roll_ingredients(filtered_df, num)
-    st.session_state["plant_history"].append(roll)
-    st.session_state["plant_index"] = len(st.session_state["plant_history"]) - 1
-        with col_back:
-    if st.button("◀ Назад", key="plant_prev"):
-    if st.session_state["plant_index"] > 0:
-    st.session_state["plant_index"] -= 1
-    
-elif page == "🦴 Животные ингредиенты":
-    st.info("Это самый первый результат.")
-        with col_forward:
-    if st.button("Вперёд ▶", key="plant_next"):
-    if st.session_state["plant_index"] < len(st.session_state["plant_history"]) - 1:
-    st.session_state["plant_index"] += 1
-    
-elif page == "🦴 Животные ингредиенты":
-    st.info("Это последний результат.")
-        st.markdown("---")
-        if st.session_state["plant_index"] >= 0:
-    for item in st.session_state["plant_history"][st.session_state["plant_index"]]:
-    show_ingredient(item, is_plant=True)
-
+    # код для трав (будет ниже в коде)
 
 elif page == "🦴 Животные ингредиенты":
-    col_left, col_center, col_right = st.columns([1, 2.5, 1])
-    with col_center:
-        st.header("🎲 Генератор ингредиентов — Животные")
-        selected_rarity = st.multiselect("📊 Фильтр по редкости", df_animals["Редкость"].unique(), default=df_animals["Редкость"].unique(), key="rarity_animal")
-        filtered_df = df_animals[df_animals["Редкость"].isin(selected_rarity)]
-        num = st.slider("🔢 Сколько ингредиентов заролить?", 1, 10, 3, key="count_animal")
-        if "animal_history" not in st.session_state:
-    st.session_state["animal_history"] = []
-    st.session_state["animal_index"] = -1
-        col_roll, col_back, col_forward = st.columns([2, 0.5, 0.5])
-        with col_roll:
-    if st.button("🎲 Заролить ингредиенты (Животные)", key="roll_animal"):
-    if filtered_df.empty:
-    st.warning("Нет ингредиентов, соответствующих выбранным фильтрам.")
-    
-elif page == "🦴 Животные ингредиенты":
-    roll = roll_ingredients(filtered_df, num)
-    st.session_state["animal_history"].append(roll)
-    st.session_state["animal_index"] = len(st.session_state["animal_history"]) - 1
-        with col_back:
-    if st.button("◀ Назад", key="animal_prev"):
-    if st.session_state["animal_index"] > 0:
-    st.session_state["animal_index"] -= 1
-    
-elif page == "🦴 Животные ингредиенты":
-    st.info("Это самый первый результат.")
-        with col_forward:
-    if st.button("Вперёд ▶", key="animal_next"):
-    if st.session_state["animal_index"] < len(st.session_state["animal_history"]) - 1:
-    st.session_state["animal_index"] += 1
-    
-# ==============================
-# 🎲 СЛУЧАЙНОЕ ЗЕЛЬЕ
-# ==============================
+    # код для животных ингредиентов (будет ниже в коде)
 
-# ==============================
-# 🎲 СЛУЧАЙНОЕ ЗЕЛЬЕ
-# ==============================
-
-# ==============================
-# 🎲 СЛУЧАЙНОЕ ЗЕЛЬЕ
-# ==============================
-
-
-# ==============================
-# 🎲 СЛУЧАЙНОЕ ЗЕЛЬЕ
-# ==============================
+elif page == "🧪 Случайное зелье":
+    # код для зелья (будет ниже в коде)
 elif page == "🧪 Случайное зелье":
     st.header("🎲 Случайное зелье")
 
