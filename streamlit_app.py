@@ -99,7 +99,7 @@ def show_ingredient(selected, is_plant=True):
 
 
 # Выбор режима в сайдбаре
-page = st.sidebar.radio("🔍 Выберите раздел", ["🌿 Травы", "🦴 Животные ингредиенты"])
+page = st.sidebar.radio("🔍 Выберите раздел", ["🌿 Травы", "🦴 Животные ингредиенты", "🧪 Случайное зелье"])
 
 if page == "🌿 Травы":
 
@@ -175,9 +175,57 @@ else:
             if st.button("Вперёд ▶", key="animal_next"):
                 if st.session_state["animal_index"] < len(st.session_state["animal_history"]) - 1:
                     st.session_state["animal_index"] += 1
-                else:
-                    st.info("Это последний результат.")
-        st.markdown("---")
-        if st.session_state["animal_index"] >= 0:
-            for item in st.session_state["animal_history"][st.session_state["animal_index"]]:
-                show_ingredient(item, is_plant=False)
+                
+# ==============================
+# 🎲 СЛУЧАЙНОЕ ЗЕЛЬЕ
+# ==============================
+
+# ==============================
+# 🎲 СЛУЧАЙНОЕ ЗЕЛЬЕ
+# ==============================
+elif page == "🧪 Случайное зелье":
+    st.header("🎲 Случайное зелье")
+
+    def generate_fantasy_name(rarity):
+        adjectives = {
+            "Обычный": ["Простой", "Мутный", "Старый"],
+            "Необычный": ["Мшистый", "Лунный", "Шепчущий"],
+            "Редкий": ["Кровавый", "Звёздный", "Морозный"],
+            "Легендарный": ["Древний", "Божественный", "Архаичный"]
+        }
+        nouns = {
+            "Обычный": ["Флакон", "Настой", "Эликсир"],
+            "Необычный": ["Язва", "Шепот", "Коготь"],
+            "Редкий": ["Тень", "Гнев", "Осколок"],
+            "Легендарный": ["Проклятие", "Зов", "Свет"]
+        }
+        import random
+        adj = random.choice(adjectives.get(rarity, ["Тайный"]))
+        noun = random.choice(nouns.get(rarity, ["Эссенция"]))
+        return f"{adj} {noun}"
+
+    if st.button("Создать зелье"):
+        plant = df_plants.sample(1).iloc[0]
+        animal = df_animals.sample(1).iloc[0]
+
+        rarity = random.choice([plant["Редкость"], animal["Редкость"]])
+        potion_name = generate_fantasy_name(rarity)
+
+        effect = f"{plant['Основной эффект']} + {animal['Игровые механики']}"
+        side_effects = f"{plant['Побочные эффекты']}, {animal['Побочные эффекты']}"
+        description = f"{plant['Описание']} И добавлен {animal['Описание']}."
+
+        st.markdown(f"""
+        <div style='
+            background-color: #1e1e1e;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 6px solid #999999;
+            margin-top: 20px;
+        '>
+            <h3 style='color: #f0be7f'>🧪 {potion_name} ({rarity})</h3>
+            <p><strong>Эффект:</strong> {effect}</p>
+            <p><strong>Побочные эффекты:</strong> {side_effects}</p>
+            <p><strong>Описание:</strong> {description}</p>
+        </div>
+        """, unsafe_allow_html=True)
