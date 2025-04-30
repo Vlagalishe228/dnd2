@@ -7,10 +7,9 @@ st.set_page_config(page_title="Генератор ингредиентов DnD",
 @st.cache_data
 def load_plant_data():
     df = pd.read_excel("ingredients.xlsx")
-    # Приводим среду обитания к нормальной форме
     df["Среда обитания"] = df["Среда обитания"].str.strip().str.capitalize()
     df = df[~df["Среда обитания"].isin(["Весна", "Лето", "Осень", "Зима"])]
-    df["Среда обитания"] = df["Среда обитания"].replace({"Лес": "Лес", "лес": "Лес"})
+    df["Среда обитания"] = df["Среда обитания"].replace({"лес": "Лес"})
     return df
 
 @st.cache_data
@@ -110,7 +109,9 @@ if page == "🌿 Травы":
 
     rarity_filter = st.multiselect("Фильтр по редкости", sorted(df_plants["Редкость"].unique()), default=sorted(df_plants["Редкость"].unique()))
     habitats = sorted(df_plants["Среда обитания"].dropna().unique())
-    habitat_filter = st.multiselect("Фильтр по среде обитания", habitats, default=habitats)
+
+    with st.expander("🌍 Среда обитания"):
+        habitat_filter = st.multiselect("Выберите среду:", habitats, default=habitats)
 
     filtered = df_plants[df_plants["Редкость"].isin(rarity_filter) & df_plants["Среда обитания"].isin(habitat_filter)]
 
