@@ -227,7 +227,6 @@ elif page == "🧪 Случайное зелье":
                 st.session_state["used_combinations"].add(combo_key)
                 break
             attempts += 1
-        else:
             st.warning("Все возможные уникальные комбинации исчерпаны!")
             st.stop()
 
