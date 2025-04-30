@@ -6,11 +6,7 @@ st.set_page_config(page_title="Генератор ингредиентов DnD",
 
 @st.cache_data
 def load_plant_data():
-    df = pd.read_excel("ingredients.xlsx")
-    df["Среда обитания"] = df["Среда обитания"].str.strip().str.capitalize()
-    df = df[~df["Среда обитания"].isin(["Весна", "Лето", "Осень", "Зима"])]
-    df["Среда обитания"] = df["Среда обитания"].replace({"лес": "Лес"})
-    return df
+    return pd.read_excel("ingredients.xlsx")
 
 @st.cache_data
 def load_animal_data():
@@ -35,12 +31,13 @@ def weighted_sample(df):
         return None
     return df.loc[random.choice(weighted_list)]
 
+def roll_ingredients(df, num):
+    return [weighted_sample(df) for _ in range(num)]
+
 def show_ingredient(selected, is_plant=True):
-    if selected is None:
-        return
     rarity = selected["Редкость"]
     name = selected["Название"]
-    description = selected["Описание"] if is_plant else selected.get("Описание", selected.get("Основной эффект", ""))
+    description = selected["Описание"] if is_plant else selected["Основной эффект"]
     dc_value = selected["DC сбора"]
 
     text_color = {
@@ -50,11 +47,18 @@ def show_ingredient(selected, is_plant=True):
         "Легендарный": "#f7ed2d"
     }.get(rarity, "#ffffff")
 
+    bg_color = {
+        "Обычный": "#2f2f2f",
+        "Необычный": "#1f3f2f",
+        "Редкий": "#3f2f1f",
+        "Легендарный": "#3f3f0f"
+    }.get(rarity, "#2f2f2f")
+
     circle_html = f"<span style='display:inline-block; width:14px; height:14px; border-radius:50%; background:{text_color}; margin-right:8px;'></span>"
 
     st.markdown(f"""
         <div style='
-            background: linear-gradient(135deg, #2f2f2f, #1c1c1c);
+            background: linear-gradient(135deg, {bg_color}, #1c1c1c);
             padding: 18px 22px;
             border-left: 6px solid {text_color};
             border-radius: 12px;
@@ -92,145 +96,136 @@ def show_ingredient(selected, is_plant=True):
             st.write(f"**Способ приготовления:** {selected['Способ приготовления']}")
             st.write(f"**Стоимость продажи:** {selected['Стоимость продажи (зм)']} зм")
 
-page = st.sidebar.radio("Выберите раздел", ["🌿 Травы", "🦴 Животные ингредиенты", "🧪 Случайное зелье"])
 
-# 🌿 Травы
+
+# Выбор режима в сайдбаре
+page = st.sidebar.radio("🔍 Выберите раздел", ["🌿 Травы", "🦴 Животные ингредиенты", "🧪 Случайное зелье"])
+
 if page == "🌿 Травы":
-    st.header("🌿 Травы")
-    rarity_filter = st.multiselect("Фильтр по редкости", sorted(df_plants["Редкость"].unique()), default=sorted(df_plants["Редкость"].unique()))
-    habitats = sorted(df_plants["Среда обитания"].dropna().unique())
-    habitat_filter = st.multiselect("Фильтр по местности", habitats, default=habitats)
 
-    filtered = df_plants.copy()
-    if rarity_filter or habitat_filter:
-        filtered = filtered[filtered["Редкость"].isin(rarity_filter) & filtered["Среда обитания"].isin(habitat_filter)]
+    col_left, col_center, col_right = st.columns([1, 2.5, 1])
+    with col_center:
+        st.header("🎲 Генератор ингредиентов — Травы")
+        col1, col2 = st.columns(2)
+        with col1:
+            selected_rarity = st.multiselect("📊 Фильтр по редкости", df_plants["Редкость"].unique(), default=df_plants["Редкость"].unique(), key="rarity_plant")
+        with col2:
+            all_envs = sorted(set(", ".join(df_plants["Среда обитания"].dropna()).split(", ")))
+            selected_env = st.multiselect("🌍 Среда обитания", all_envs, default=None, key="env_plant")
+        filtered_df = df_plants[df_plants["Редкость"].isin(selected_rarity)]
+        if selected_env:
+            filtered_df = filtered_df[filtered_df["Среда обитания"].str.contains("|".join(selected_env), na=False)]
+        num = st.slider("🔢 Сколько ингредиентов заролить?", 1, 10, 3, key="count_plant")
+        if "plant_history" not in st.session_state:
+            st.session_state["plant_history"] = []
+            st.session_state["plant_index"] = -1
+        col_roll, col_back, col_forward = st.columns([2, 0.5, 0.5])
+        with col_roll:
+            roll_clicked = st.button("🎲 Заролить ингредиенты (Травы)", key="roll_plant_main")
+            if roll_clicked:
+                if filtered_df.empty:
+                    st.warning("Нет ингредиентов, соответствующих выбранным фильтрам.")
+                else:
+                    roll = roll_ingredients(filtered_df, num)
+                    st.session_state["plant_history"].append(roll)
+                    st.session_state["plant_index"] = len(st.session_state["plant_history"]) - 1
+        with col_back:
+            if st.button("◀ Назад", key="plant_prev"):
+                if st.session_state["plant_index"] > 0:
+                    st.session_state["plant_index"] -= 1
+                else:
+                    st.info("Это самый первый результат.")
+        with col_forward:
+            if st.button("Вперёд ▶", key="plant_next"):
+                if st.session_state["plant_index"] < len(st.session_state["plant_history"]) - 1:
+                    st.session_state["plant_index"] += 1
+                else:
+                    st.info("Это последний результат.")
+        st.markdown("---")
+        if st.session_state["plant_index"] >= 0:
+            for item in st.session_state["plant_history"][st.session_state["plant_index"]]:
+                show_ingredient(item, is_plant=True)
 
-    if "plant_history" not in st.session_state:
-        st.session_state["plant_history"] = []
-        st.session_state["plant_index"] = -1
+else:
+    col_left, col_center, col_right = st.columns([1, 2.5, 1])
+    with col_center:
+        st.header("🎲 Генератор ингредиентов — Животные")
+        selected_rarity = st.multiselect("📊 Фильтр по редкости", df_animals["Редкость"].unique(), default=df_animals["Редкость"].unique(), key="rarity_animal")
+        filtered_df = df_animals[df_animals["Редкость"].isin(selected_rarity)]
+        num = st.slider("🔢 Сколько ингредиентов заролить?", 1, 10, 3, key="count_animal")
+        if "animal_history" not in st.session_state:
+            st.session_state["animal_history"] = []
+            st.session_state["animal_index"] = -1
+        col_roll, col_back, col_forward = st.columns([2, 0.5, 0.5])
+        with col_roll:
+            if st.button("🎲 Заролить ингредиенты (Животные)", key="roll_animal"):
+                if filtered_df.empty:
+                    st.warning("Нет ингредиентов, соответствующих выбранным фильтрам.")
+                else:
+                    roll = roll_ingredients(filtered_df, num)
+                    st.session_state["animal_history"].append(roll)
+                    st.session_state["animal_index"] = len(st.session_state["animal_history"]) - 1
+        with col_back:
+            if st.button("◀ Назад", key="animal_prev"):
+                if st.session_state["animal_index"] > 0:
+                    st.session_state["animal_index"] -= 1
+                else:
+                    st.info("Это самый первый результат.")
+        with col_forward:
+            if st.button("Вперёд ▶", key="animal_next"):
+                if st.session_state["animal_index"] < len(st.session_state["animal_history"]) - 1:
+                    st.session_state["animal_index"] += 1
+                
+# ==============================
+# 🎲 СЛУЧАЙНОЕ ЗЕЛЬЕ
+# ==============================
 
-    col1, col2, col3 = st.columns([2, 0.5, 0.5])
-    with col1:
-        if st.button("🎲 Заролить ингредиенты"):
-            rolled = [weighted_sample(filtered) for _ in range(3)]
-            st.session_state["plant_history"].append(rolled)
-            st.session_state["plant_index"] = len(st.session_state["plant_history"]) - 1
-    with col2:
-        if st.button("◀", key="plant_prev") and st.session_state["plant_index"] > 0:
-            st.session_state["plant_index"] -= 1
-    with col3:
-        if st.button("▶", key="plant_next") and st.session_state["plant_index"] < len(st.session_state["plant_history"]) - 1:
-            st.session_state["plant_index"] += 1
-
-    if st.session_state["plant_index"] >= 0:
-        for plant in st.session_state["plant_history"][st.session_state["plant_index"]]:
-            show_ingredient(plant, is_plant=True)
-
-# 🦴 Животные ингредиенты
-elif page == "🦴 Животные ингредиенты":
-    st.header("🦴 Животные ингредиенты")
-    rarity_filter = st.multiselect("Фильтр по редкости", sorted(df_animals["Редкость"].unique()), default=sorted(df_animals["Редкость"].unique()))
-    filtered = df_animals.copy()
-    if rarity_filter:
-        filtered = filtered[filtered["Редкость"].isin(rarity_filter)]
-
-    if "animal_history" not in st.session_state:
-        st.session_state["animal_history"] = []
-        st.session_state["animal_index"] = -1
-
-    col1, col2, col3 = st.columns([2, 0.5, 0.5])
-    with col1:
-        if st.button("🎲 Заролить ингредиенты", key="roll_animal"):
-            rolled = [weighted_sample(filtered) for _ in range(3)]
-            st.session_state["animal_history"].append(rolled)
-            st.session_state["animal_index"] = len(st.session_state["animal_history"]) - 1
-    with col2:
-        if st.button("◀", key="animal_prev") and st.session_state["animal_index"] > 0:
-            st.session_state["animal_index"] -= 1
-    with col3:
-        if st.button("▶", key="animal_next") and st.session_state["animal_index"] < len(st.session_state["animal_history"]) - 1:
-            st.session_state["animal_index"] += 1
-
-    if st.session_state["animal_index"] >= 0:
-        for animal in st.session_state["animal_history"][st.session_state["animal_index"]]:
-            show_ingredient(animal, is_plant=False)
-
-# 🧪 Случайное зелье
+# ==============================
+# 🎲 СЛУЧАЙНОЕ ЗЕЛЬЕ
+# ==============================
 elif page == "🧪 Случайное зелье":
-    st.header("🧪 Случайное зелье")
+    st.header("🎲 Случайное зелье")
 
-    if "potion_history" not in st.session_state:
-        st.session_state["potion_history"] = []
-        st.session_state["potion_index"] = -1
-        st.session_state["used_combinations"] = set()
+    def generate_fantasy_name(rarity):
+        adjectives = {
+            "Обычный": ["Простой", "Мутный", "Старый"],
+            "Необычный": ["Мшистый", "Лунный", "Шепчущий"],
+            "Редкий": ["Кровавый", "Звёздный", "Морозный"],
+            "Легендарный": ["Древний", "Божественный", "Архаичный"]
+        }
+        nouns = {
+            "Обычный": ["Флакон", "Настой", "Эликсир"],
+            "Необычный": ["Язва", "Шепот", "Коготь"],
+            "Редкий": ["Тень", "Гнев", "Осколок"],
+            "Легендарный": ["Проклятие", "Зов", "Свет"]
+        }
+        import random
+        adj = random.choice(adjectives.get(rarity, ["Тайный"]))
+        noun = random.choice(nouns.get(rarity, ["Эссенция"]))
+        return f"{adj} {noun}"
 
-    selected_rarities = st.multiselect(
-        "Фильтр по редкости",
-        ["Обычный", "Необычный", "Редкий", "Легендарный"],
-        default=["Обычный", "Необычный", "Редкий", "Легендарный"]
-    )
+    if st.button("Создать зелье"):
+        plant = df_plants.sample(1).iloc[0]
+        animal = df_animals.sample(1).iloc[0]
 
-    def genitive(name):
-        return name[:-1] + "ы" if name.endswith("а") else name[:-1] + "и" if name.endswith("я") else name
-
-    def generate_name(p, a):
-        return random.choice([
-            f"Эликсир {genitive(p)}",
-            f"Настой {genitive(a)}",
-            f"Зелье {a.split()[0]} и {p.split()[0]}",
-            f"Флакон {a.split()[0]}",
-            f"Эссенция {p.split()[0]}",
-            f"Отвар {a.split()[0]} и {p.split()[0]}",
-            f"Зелье из {genitive(p)} и {genitive(a)}"
-        ])
-
-    col1, col2, col3 = st.columns([2, 0.5, 0.5])
-    with col1:
-        if st.button("🎲 Создать зелье"):
-            for _ in range(100):
-                plant = df_plants[df_plants["Редкость"].isin(selected_rarities)].sample(1).iloc[0]
-                animal = df_animals[df_animals["Редкость"].isin(selected_rarities)].sample(1).iloc[0]
-                key = f"{plant['Название']}|{animal['Название']}"
-                if key not in st.session_state["used_combinations"]:
-                    st.session_state["used_combinations"].add(key)
-                    break
-            else:
-                st.warning("Все комбинации использованы!")
-                st.stop()
-
-            st.session_state["potion_history"].append((plant, animal))
-            st.session_state["potion_index"] = len(st.session_state["potion_history"]) - 1
-    with col2:
-        if st.button("◀", key="potion_prev") and st.session_state["potion_index"] > 0:
-            st.session_state["potion_index"] -= 1
-    with col3:
-        if st.button("▶", key="potion_next") and st.session_state["potion_index"] < len(st.session_state["potion_history"]) - 1:
-            st.session_state["potion_index"] += 1
-
-    if st.session_state["potion_index"] >= 0:
-        plant, animal = st.session_state["potion_history"][st.session_state["potion_index"]]
         rarity = random.choice([plant["Редкость"], animal["Редкость"]])
-        name = generate_name(plant["Название"], animal["Название"])
-        effect = f"{plant['Основной эффект']} + {animal['Игровые механики']}"
-        side = f"{plant['Побочные эффекты']}, {animal['Побочные эффекты']}"
-        dc = max(plant["DC сбора"], animal["DC сбора"])
-        comp = f"🌿 {plant['Название']} — {plant['Описание']}<br>🦴 {animal['Название']} — {animal.get('Описание', animal.get('Основной эффект', ''))}"
+        potion_name = generate_fantasy_name(rarity)
 
-        color = {
-            "Обычный": "#e4e5e3",
-            "Необычный": "#b3e9b8",
-            "Редкий": "#f0be7f",
-            "Легендарный": "#f7ed2d"
-        }.get(rarity, "#ffffff")
+        effect = f"{plant['Основной эффект']} + {animal['Игровые механики']}"
+        side_effects = f"{plant['Побочные эффекты']}, {animal['Побочные эффекты']}"
+        description = f"{plant['Описание']} И добавлен {animal['Описание']}."
 
         st.markdown(f"""
-        <div style='background-color:#1e1e1e; padding:20px; border-radius:10px; border-left:6px solid {color}; margin-top:20px; box-shadow:2px 2px 8px rgba(0,0,0,0.4);'>
-            <div style='display: flex; justify-content: space-between; align-items: center;'>
-                <h3 style='color:{color};'>🧪 {name} ({rarity})</h3>
-                <div style='color:{color}; font-weight:bold; font-size:20px;'>DC: {dc}</div>
-            </div>
+        <div style='
+            background-color: #1e1e1e;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 6px solid #999999;
+            margin-top: 20px;
+        '>
+            <h3 style='color: #f0be7f'>🧪 {potion_name} ({rarity})</h3>
             <p><strong>Эффект:</strong> {effect}</p>
-            <p><strong>Побочные эффекты:</strong> {side}</p>
-            <p><strong>Состав:</strong><br>{comp}</p>
+            <p><strong>Побочные эффекты:</strong> {side_effects}</p>
+            <p><strong>Описание:</strong> {description}</p>
         </div>
         """, unsafe_allow_html=True)
