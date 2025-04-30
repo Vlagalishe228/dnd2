@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 import random
-from streamlit.components.v1 import html
 
 st.set_page_config(page_title="Генератор ингредиентов DnD", layout="wide")
 
@@ -97,47 +96,7 @@ def show_ingredient(selected, is_plant=True):
             st.write(f"**Способ приготовления:** {selected['Способ приготовления']}")
             st.write(f"**Стоимость продажи:** {selected['Стоимость продажи (зм)']} зм")
 
-def navigation_buttons():
-    st.markdown("""
-    <style>
-        .nav-button {
-            font-size: 20px;
-            padding: 8px 20px;
-            margin: 0 5px;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            background-color: #2f2f2f;
-            color: white;
-            border: none;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        .nav-button:hover {
-            background-color: #3f3f3f;
-            transform: scale(1.1);
-        }
-        .nav-container {
-            display: flex;
-            justify-content: center;
-            margin: 20px 0;
-        }
-    </style>
-    """, unsafe_allow_html=True)
-    
-    col1, col2, col3 = st.columns([1, 2, 1])
-    with col2:
-        st.markdown("""
-        <div class="nav-container">
-            <button class="nav-button" onclick="window.historyBack()">←</button>
-            <button class="nav-button" onclick="window.historyForward()">→</button>
-        </div>
-        """, unsafe_allow_html=True)
-
-# Инициализация истории в session_state
+# Инициализация истории
 if 'history' not in st.session_state:
     st.session_state.history = []
 if 'history_index' not in st.session_state:
@@ -155,18 +114,59 @@ if page == "🌿 Травы":
         default=["Обычный", "Необычный", "Редкий", "Легендарный"]
     )
     
-    if st.button("🎲 Сгенерировать"):
-        filtered_plants = df_plants[df_plants["Редкость"].isin(selected_rarities)]
-        ingredients = roll_ingredients(filtered_plants, num_plants)
-        
-        # Сохраняем в историю
-        st.session_state.history.append({
-            "type": "plants",
-            "data": ingredients,
-            "rarities": selected_rarities,
-            "count": num_plants
-        })
-        st.session_state.history_index = len(st.session_state.history) - 1
+    # Контейнер для кнопок генерации и навигации
+    col_gen, col_nav, col_count = st.columns([2, 1, 1])
+    
+    with col_gen:
+        if st.button("🎲 Сгенерировать"):
+            filtered_plants = df_plants[df_plants["Редкость"].isin(selected_rarities)]
+            ingredients = roll_ingredients(filtered_plants, num_plants)
+            
+            st.session_state.history.append({
+                "type": "plants",
+                "data": ingredients,
+                "rarities": selected_rarities,
+                "count": num_plants
+            })
+            st.session_state.history_index = len(st.session_state.history) - 1
+    
+    # Навигация по истории
+    if len(st.session_state.history) > 0:
+        with col_nav:
+            st.markdown("""
+            <style>
+                .nav-button {
+                    font-size: 16px;
+                    padding: 5px 10px;
+                    margin: 0 2px;
+                    border-radius: 50%;
+                    width: 30px;
+                    height: 30px;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    background-color: #2f2f2f;
+                    color: white;
+                    border: none;
+                    cursor: pointer;
+                    transition: all 0.3s;
+                }
+                .nav-button:hover {
+                    background-color: #3f3f3f;
+                    transform: scale(1.1);
+                }
+            </style>
+            """, unsafe_allow_html=True)
+            
+            st.markdown("""
+            <div style="display: flex; align-items: center;">
+                <button class="nav-button" onclick="window.historyBack()">←</button>
+                <button class="nav-button" onclick="window.historyForward()">→</button>
+            </div>
+            """, unsafe_allow_html=True)
+            
+        with col_count:
+            st.write(f"{st.session_state.history_index + 1}/{len(st.session_state.history)}")
     
     # Показываем текущую генерацию
     if st.session_state.history_index >= 0:
@@ -174,21 +174,6 @@ if page == "🌿 Травы":
         if current["type"] == "plants":
             for ing in current["data"]:
                 show_ingredient(ing, is_plant=True)
-    
-    # Навигация по истории
-    if len(st.session_state.history) > 1:
-        navigation_buttons()
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            if st.button("← Назад") and st.session_state.history_index > 0:
-                st.session_state.history_index -= 1
-                st.experimental_rerun()
-        with col3:
-            if st.button("Вперёд →") and st.session_state.history_index < len(st.session_state.history) - 1:
-                st.session_state.history_index += 1
-                st.experimental_rerun()
-        with col2:
-            st.write(f"Генерация {st.session_state.history_index + 1} из {len(st.session_state.history)}")
 
 elif page == "🦴 Животные ингредиенты":
     st.header("🦴 Генератор животных ингредиентов")
@@ -200,18 +185,59 @@ elif page == "🦴 Животные ингредиенты":
         default=["Обычный", "Необычный", "Редкий", "Легендарный"]
     )
     
-    if st.button("🎲 Сгенерировать"):
-        filtered_animals = df_animals[df_animals["Редкость"].isin(selected_rarities)]
-        ingredients = roll_ingredients(filtered_animals, num_animals)
-        
-        # Сохраняем в историю
-        st.session_state.history.append({
-            "type": "animals",
-            "data": ingredients,
-            "rarities": selected_rarities,
-            "count": num_animals
-        })
-        st.session_state.history_index = len(st.session_state.history) - 1
+    # Контейнер для кнопок генерации и навигации
+    col_gen, col_nav, col_count = st.columns([2, 1, 1])
+    
+    with col_gen:
+        if st.button("🎲 Сгенерировать"):
+            filtered_animals = df_animals[df_animals["Редкость"].isin(selected_rarities)]
+            ingredients = roll_ingredients(filtered_animals, num_animals)
+            
+            st.session_state.history.append({
+                "type": "animals",
+                "data": ingredients,
+                "rarities": selected_rarities,
+                "count": num_animals
+            })
+            st.session_state.history_index = len(st.session_state.history) - 1
+    
+    # Навигация по истории
+    if len(st.session_state.history) > 0:
+        with col_nav:
+            st.markdown("""
+            <style>
+                .nav-button {
+                    font-size: 16px;
+                    padding: 5px 10px;
+                    margin: 0 2px;
+                    border-radius: 50%;
+                    width: 30px;
+                    height: 30px;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    background-color: #2f2f2f;
+                    color: white;
+                    border: none;
+                    cursor: pointer;
+                    transition: all 0.3s;
+                }
+                .nav-button:hover {
+                    background-color: #3f3f3f;
+                    transform: scale(1.1);
+                }
+            </style>
+            """, unsafe_allow_html=True)
+            
+            st.markdown("""
+            <div style="display: flex; align-items: center;">
+                <button class="nav-button" onclick="window.historyBack()">←</button>
+                <button class="nav-button" onclick="window.historyForward()">→</button>
+            </div>
+            """, unsafe_allow_html=True)
+            
+        with col_count:
+            st.write(f"{st.session_state.history_index + 1}/{len(st.session_state.history)}")
     
     # Показываем текущую генерацию
     if st.session_state.history_index >= 0:
@@ -219,21 +245,6 @@ elif page == "🦴 Животные ингредиенты":
         if current["type"] == "animals":
             for ing in current["data"]:
                 show_ingredient(ing, is_plant=False)
-    
-    # Навигация по истории
-    if len(st.session_state.history) > 1:
-        navigation_buttons()
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            if st.button("← Назад") and st.session_state.history_index > 0:
-                st.session_state.history_index -= 1
-                st.experimental_rerun()
-        with col3:
-            if st.button("Вперёд →") and st.session_state.history_index < len(st.session_state.history) - 1:
-                st.session_state.history_index += 1
-                st.experimental_rerun()
-        with col2:
-            st.write(f"Генерация {st.session_state.history_index + 1} из {len(st.session_state.history)}")
 
 elif page == "🧪 Случайное зелье":
     st.header("🎲 Случайное зелье")
