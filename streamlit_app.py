@@ -34,6 +34,78 @@ def weighted_sample(df):
 def roll_ingredients(df, num):
     return [weighted_sample(df) for _ in range(num)]
 
+def genitive_form(name):
+    name = name.strip().lower()
+    exceptions = {
+        "аконит": "аконита",
+        "женьшень": "женьшеня",
+        "ландыш": "ландыша",
+        "мята": "мяты",
+        "ромашка": "ромашки",
+        "черника": "черники",
+        "чеснок": "чеснока",
+        "беладонна": "беладонны",
+        "зверобой": "зверобоя",
+        "полынь": "полыни",
+        "аконит": "аконита",
+        "красавка": "красавки",
+        "папоротник": "папоротника"
+    }
+    
+    if name in exceptions:
+        return exceptions[name]
+    
+    if name.endswith(("а", "я")):
+        if name.endswith("ка"):
+            return name[:-2] + "ки"
+        elif name.endswith(("га", "ха")):
+            return name[:-1] + "и"
+        elif name.endswith("ья"):
+            return name[:-2] + "ьи"
+        elif name.endswith("ия"):
+            return name[:-2] + "ии"
+        else:
+            return name[:-1] + "ы"
+    elif name.endswith("о"):
+        return name[:-1] + "а"
+    elif name.endswith(("е", "ь", "й")):
+        return name[:-1] + "я"
+    else:
+        return name + "а"
+
+def extract_core(name):
+    return name.split()[0].split("-")[0].split(",")[0]
+
+def generate_fantasy_name(plant, animal):
+    templates = [
+        "Эликсир {plant_gen}",
+        "Настой {animal_gen}",
+        "Зелье {animal_core} и {plant_core}",
+        "Флакон {animal_core}",
+        "Эссенция {plant_core}",
+        "Отвар {animal_core} и {plant_core}",
+        "Зелье из {plant_gen} и {animal_gen}",
+        "Напиток {plant_gen}",
+        "Вытяжка {animal_gen}",
+        "Микстура {plant_core}",
+        "Смесь {animal_core}",
+        "Амброзия {plant_gen}",
+        "Нектар {animal_gen}"
+    ]
+    
+    plant_gen = genitive_form(plant)
+    animal_gen = genitive_form(animal)
+    plant_core = extract_core(plant)
+    animal_core = extract_core(animal)
+    
+    template = random.choice(templates)
+    return template.format(
+        plant_gen=plant_gen,
+        animal_gen=animal_gen,
+        plant_core=plant_core,
+        animal_core=animal_core
+    ).capitalize()
+
 def show_ingredient(selected, is_plant=True):
     rarity = selected["Редкость"]
     name = selected["Название"]
@@ -183,40 +255,6 @@ elif page == "🧪 Случайное зелье":
 
     if "used_combinations" not in st.session_state:
         st.session_state["used_combinations"] = set()
-
-    def genitive_form(name):
-        name = name.strip()
-        if name.endswith("а"):
-            return name[:-1] + "ы"
-        elif name.endswith("я"):
-            return name[:-1] + "и"
-        return name
-
-    def extract_core(name):
-        return name.split()[0]
-
-    def generate_fantasy_name(plant, animal):
-        import random
-        templates = [
-            "Эликсир {plant_gen}",
-            "Настой {animal_gen}",
-            "Зелье {animal_core} и {plant_core}",
-            "Флакон {animal_core}",
-            "Эссенция {plant_core}",
-            "Отвар {animal_core} и {plant_core}",
-            "Зелье из {plant_gen} и {animal_gen}"
-        ]
-        plant_gen = genitive_form(plant)
-        animal_gen = genitive_form(animal)
-        plant_core = extract_core(plant)
-        animal_core = extract_core(animal)
-        template = random.choice(templates)
-        return template.format(
-            plant_gen=plant_gen,
-            animal_gen=animal_gen,
-            plant_core=plant_core,
-            animal_core=animal_core
-        )
 
     if st.button("Создать зелье"):
         import random
